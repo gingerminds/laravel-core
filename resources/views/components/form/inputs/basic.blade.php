@@ -13,6 +13,8 @@
     'max' => null,
     'step' => null,
     'helper' => null,
+    'prefix' => null,
+    'suffix' => null,
 ])
 
 @php
@@ -35,6 +37,11 @@
      * Important: old() fallback ONLY works with dot notation
      */
     $oldValue = old($errorKey, $value);
+
+    // `prefix`/`suffix` wrap the input in a Bootstrap input-group (e.g. a
+    // read-only "/news/" segment before a page's slug field) instead of
+    // every call site hand-rolling its own <div class="input-group"> markup.
+    $hasGroup = null !== $prefix || null !== $suffix;
 @endphp
 
 <div class="{{ $sizeClass }}">
@@ -44,6 +51,13 @@
             <span class="text-danger">*</span>
         @endif
     </label>
+
+    @if($hasGroup)
+        <div class="input-group @if($size) input-group-{{ $size }} @endif">
+            @if(null !== $prefix)
+                <span class="input-group-text">{{ $prefix }}</span>
+            @endif
+    @endif
 
     <input
             type="{{ $type }}"
@@ -60,6 +74,13 @@
             @if($disabled) disabled @endif
             {{ $attributes }}
     >
+
+    @if($hasGroup)
+            @if(null !== $suffix)
+                <span class="input-group-text">{{ $suffix }}</span>
+            @endif
+        </div>
+    @endif
 
     @if($helper)
         <div class="form-text">{{ $helper }}</div>

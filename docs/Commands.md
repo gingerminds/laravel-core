@@ -54,6 +54,49 @@ php artisan make:policy Product/Product
 
 Creates `app/Policies/Product/ProductPolicy.php` and automatically adds the `use` statements and the `Model::class => Policy::class` entry to `app/Providers/AuthServiceProvider.php` (or the package's `LaravelCoreAuthServiceProvider` if the app doesn't have its own). Safe to re-run — it detects an existing registration and skips it.
 
+The generated class extends `Gingerminds\LaravelCore\Policies\AbstractResourcePolicy` rather than spelling out every method itself:
+
+```php
+class ProductPolicy extends AbstractResourcePolicy
+{
+    protected function resourceName(): string
+    {
+        return 'products';
+    }
+}
+```
+
+`AbstractResourcePolicy` implements the standard "view X / edit X / delete X" permission shape once, so it doesn't have to be copy-pasted into every policy:
+
+| Method | Behavior |
+|---|---|
+| `viewAny()` / `view()` | Requires `view {resourceName}`. |
+| `create()` / `update()` | Requires `edit {resourceName}`. |
+| `delete()` | Requires `delete {resourceName}`. |
+| `restore()` / `forceDelete()` | Always denied. |
+
+If a resource should be readable by anyone regardless of permissions, override `viewAny()`/`view()` in the concrete policy instead of leaving the inherited, gated behavior:
+
+```php
+class ProductPolicy extends AbstractResourcePolicy
+{
+    protected function resourceName(): string
+    {
+        return 'products';
+    }
+
+    public function viewAny(?User $user): bool
+    {
+        return true;
+    }
+
+    public function view(?User $user): bool
+    {
+        return true;
+    }
+}
+```
+
 ## `gingerminds:create:user`
 
 ```bash

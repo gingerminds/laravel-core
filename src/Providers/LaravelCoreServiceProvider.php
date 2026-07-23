@@ -273,6 +273,14 @@ class LaravelCoreServiceProvider extends ServiceProvider
             return;
         }
 
+        // Same kill switch as AbstractRepository::get() (config('cache.activate'),
+        // env CACHE_ACTIVATE) — if reads never populate the cache, these
+        // Cache::tags() calls would otherwise be dead work at best, or throw
+        // outright if the store is down/misconfigured (e.g. can't tag).
+        if (! config('cache.activate', true)) {
+            return;
+        }
+
         if ($model instanceof CacheableResourceInterface) {
             $tag        = $model::getCacheKey();
             $id         = $model->getKey();
@@ -312,6 +320,10 @@ class LaravelCoreServiceProvider extends ServiceProvider
     private function handleCacheableRemoval(mixed $model): void
     {
         if (! $model instanceof Model) {
+            return;
+        }
+
+        if (! config('cache.activate', true)) {
             return;
         }
 

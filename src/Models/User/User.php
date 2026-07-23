@@ -17,6 +17,7 @@ use Gingerminds\LaravelCore\Models\ResourceModelInterface;
 use Gingerminds\LaravelCore\Models\SearchableModelInterface;
 use Gingerminds\LaravelCore\Models\SortableModelInterface;
 use Gingerminds\LaravelCore\StateProcessor\User\UserStateProcessor;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -129,6 +130,23 @@ class User extends Authenticatable implements
     public const string GROUP_EDIT   = 'user:edit';
 
     protected string $guardName = 'web';
+
+    /**
+     * `roles` (Spatie `HasRoles`) and `contributor` are both serialized in
+     * GROUP_LIST/GROUP_READ, but are also read outside any repository
+     * listing — e.g. the auth guard resolving the current user, role/policy
+     * checks (`hasRole()`, `role:` middleware) — none of which go through
+     * `AbstractRepository::get()` and its `EagerLoadableModelInterface`
+     * eager-load merge. A global scope (same pattern `TranslatableModelTrait`
+     * uses for `translations`/`currentTranslation`) is the only way to cover
+     * every one of those paths at once.
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('rolesAndContributor', function (Builder $builder): void {
+            $builder->with(['roles', 'contributor']);
+        });
+    }
 
     public function guardName(): string
     {

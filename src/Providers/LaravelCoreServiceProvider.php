@@ -9,6 +9,9 @@ use Gingerminds\LaravelCore\ApiProvider\Permission\PermissionProvider;
 use Gingerminds\LaravelCore\ApiProvider\Role\RoleProvider;
 use Gingerminds\LaravelCore\ApiProvider\User\ContributorProvider;
 use Gingerminds\LaravelCore\ApiProvider\User\UserProvider;
+use Gingerminds\LaravelCore\Cache\CacheContextResolverInterface;
+use Gingerminds\LaravelCore\Cache\CacheKeyBuilder;
+use Gingerminds\LaravelCore\Cache\NullCacheContextResolver;
 use Gingerminds\LaravelCore\Console\Commands\Make\CreateApiProvider;
 use Gingerminds\LaravelCore\Console\Commands\Make\CreateControllerFull;
 use Gingerminds\LaravelCore\Console\Commands\Make\CreateFormRequest;
@@ -29,6 +32,8 @@ use Gingerminds\LaravelCore\Http\Requests\User\ContributorRequest;
 use Gingerminds\LaravelCore\Http\Requests\User\UserRequest;
 use Gingerminds\LaravelCore\Livewire\Component\List\Filter\SelectModel;
 use Gingerminds\LaravelCore\Models\CacheableResourceInterface;
+use Gingerminds\LaravelCore\Models\CacheCascadeInterface;
+use Gingerminds\LaravelCore\Models\EagerLoadableModelInterface;
 use Gingerminds\LaravelCore\Models\Permission\Permission;
 use Gingerminds\LaravelCore\Models\Role\Role;
 use Gingerminds\LaravelCore\Models\User\Contributor;
@@ -83,6 +88,14 @@ class LaravelCoreServiceProvider extends ServiceProvider
             __DIR__ . '/../../config/gingerminds-core.php',
             'gingerminds-core'
         );
+
+        // Default cache context: no viewer axis (site/language/...) affects the
+        // cache key. laravel-multisite rebinds this to a real resolver, and a
+        // consuming project may extend it further (e.g. to add country) — see
+        // CacheContextResolverInterface for why this can't just call
+        // SiteContext/LanguageContext directly from core.
+        $this->app->bind(CacheContextResolverInterface::class, NullCacheContextResolver::class);
+        $this->app->singleton(CacheKeyBuilder::class);
 
         // Registre extensible des types de filtre (getFilters()' "type").
         // Tout package peut ajouter le sien via FilterHandlerRegistry::register()
@@ -231,31 +244,125 @@ class LaravelCoreServiceProvider extends ServiceProvider
             return Route::get('/livewire/script', $handle);
         });
 
-        $this->listenAndFlushCacheFor('eloquent.saved: *');
-        $this->listenAndFlushCacheFor('eloquent.deleted: *');
-        $this->listenAndFlushCacheFor('eloquent.restored: *');
-        $this->listenAndFlushCacheFor('eloquent.forceDeleted: *');
-    }
-
-    private function listenAndFlushCacheFor(string $eventName): void
-    {
-        Event::listen($eventName, function (string $eventName, array $payload): void {
-            $model = $payload[0] ?? null;
-            if (! $model instanceof Model) {
-                return;
-            }
-
-            $this->flushResourceCache($model);
+        Event::listen('eloquent.saved: *', function (string $eventName, array $payload): void {
+            $this->handleCacheableWrite($payload[0] ?? null);
+        });
+        Event::listen('eloquent.restored: *', function (string $eventName, array $payload): void {
+            $this->handleCacheableWrite($payload[0] ?? null);
+        });
+        Event::listen('eloquent.deleted: *', function (string $eventName, array $payload): void {
+            $this->handleCacheableRemoval($payload[0] ?? null);
+        });
+        Event::listen('eloquent.forceDeleted: *', function (string $eventName, array $payload): void {
+            $this->handleCacheableRemoval($payload[0] ?? null);
         });
     }
 
-    private function flushResourceCache(Model $model): void
+    /**
+     * Covers create and update: the item cache is invalidated then
+     * repopulated precisely (fresh row, eager loads applied) under the
+     * writer's own cache context, while every other cached context for this
+     * same id is simply dropped and left to repopulate lazily on next read
+     * — same "invalidate, don't pre-warm" principle as listings. The
+     * listing cache is always just invalidated: there is no bounded set of
+     * filter/sort/pagination combinations to recompute eagerly.
+     */
+    private function handleCacheableWrite(mixed $model): void
     {
-        if (! $model instanceof CacheableResourceInterface) {
+        if (! $model instanceof Model) {
             return;
         }
 
-        Cache::tags([$model::getCacheKey()])->flush();
+        if ($model instanceof CacheableResourceInterface) {
+            $tag        = $model::getCacheKey();
+            $id         = $model->getKey();
+            $keyBuilder = app(CacheKeyBuilder::class);
+
+            Cache::tags([$keyBuilder->itemTag($tag, $id)])->flush();
+
+            if ($id !== null) {
+                $fresh = $this->reloadForCache($model);
+
+                if ($fresh instanceof Model) {
+                    $ttl = $model::getCacheTtlSeconds() ?? (int) config('cache.resource_ttl_seconds', 3600);
+
+                    if ($ttl > 0) {
+                        Cache::tags([$tag, $keyBuilder->itemTag($tag, $id)])->put(
+                            $keyBuilder->itemKey($tag, $keyBuilder->context(), $id),
+                            $fresh,
+                            now()->addSeconds($ttl)
+                        );
+                    }
+                }
+            }
+
+            Cache::tags([$keyBuilder->listTag($tag)])->flush();
+        }
+
+        if ($model instanceof CacheCascadeInterface) {
+            $this->cascadeFlush($model);
+        }
+    }
+
+    /**
+     * Covers delete and force delete: the item cache is removed outright
+     * (no re-put, there's nothing left to cache), the listing cache is
+     * invalidated the same way as on write.
+     */
+    private function handleCacheableRemoval(mixed $model): void
+    {
+        if (! $model instanceof Model) {
+            return;
+        }
+
+        if ($model instanceof CacheableResourceInterface) {
+            $tag        = $model::getCacheKey();
+            $keyBuilder = app(CacheKeyBuilder::class);
+
+            Cache::tags([$keyBuilder->itemTag($tag, $model->getKey())])->flush();
+            Cache::tags([$keyBuilder->listTag($tag)])->flush();
+        }
+
+        if ($model instanceof CacheCascadeInterface) {
+            $this->cascadeFlush($model);
+        }
+    }
+
+    /**
+     * Re-reads the model from the database (the in-memory instance may still
+     * carry stale relations from before the save) with its declared eager
+     * loads applied, so the cached item is never missing what its own
+     * resource/serializer will ask for.
+     */
+    private function reloadForCache(Model $model): ?Model
+    {
+        $modelClass = $model::class;
+
+        /** @var Model|null $fresh */
+        $fresh = $modelClass::query()->find($model->getKey());
+
+        if ($fresh === null) {
+            return null;
+        }
+
+        if (is_subclass_of($modelClass, EagerLoadableModelInterface::class)) {
+            $fresh->load($modelClass::getEagerLoads());
+        }
+
+        return $fresh;
+    }
+
+    /**
+     * One level deep on purpose: cascading further would require a
+     * tag-to-model-class registry to look up each parent's own
+     * getCascadeCacheKeys(), which nothing currently needs. Add that if a
+     * real multi-level case shows up.
+     */
+    private function cascadeFlush(CacheCascadeInterface $model): void
+    {
+        foreach ($model::getCascadeCacheKeys() as $parentTag) {
+            Cache::tags([$parentTag])->flush();
+        }
     }
 
     private function bindResources(): void

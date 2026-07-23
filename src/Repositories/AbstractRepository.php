@@ -2,7 +2,9 @@
 
 namespace Gingerminds\LaravelCore\Repositories;
 
+use Gingerminds\LaravelCore\Cache\CacheKeyBuilder;
 use Gingerminds\LaravelCore\Models\CacheableResourceInterface;
+use Gingerminds\LaravelCore\Models\EagerLoadableModelInterface;
 use Gingerminds\LaravelCore\Models\FilterableModelInterface;
 use Gingerminds\LaravelCore\Models\SearchableModelInterface;
 use Gingerminds\LaravelCore\Models\SortableModelInterface;
@@ -32,23 +34,56 @@ abstract class AbstractRepository implements RepositoryInterface
     public function get(Request $request, array $with = []): LengthAwarePaginator
     {
         $modelClass = $this->getModelClass();
+        $with       = $this->mergeEagerLoads($modelClass, $with);
         $cacheTag   = $this->getCacheTag($modelClass);
-        if ($cacheTag !== null) {
-            $ttlSeconds = $this->resolveCacheTtlSeconds($modelClass);
-            if ($ttlSeconds <= 0) {
-                return $this->runGetQuery($request, $with);
-            }
 
-            return Cache::tags([$cacheTag])->remember(
-                $this->buildCacheKey($cacheTag, $request, $with),
-                now()->addSeconds($ttlSeconds),
-                function () use ($request, $with) {
-                    return $this->runGetQuery($request, $with);
-                }
-            );
+        if ($cacheTag === null) {
+            return $this->runGetQuery($request, $with);
         }
 
-        return $this->runGetQuery($request, $with);
+        $ttlSeconds = $this->resolveCacheTtlSeconds($modelClass);
+        if ($ttlSeconds <= 0) {
+            return $this->runGetQuery($request, $with);
+        }
+
+        $keyBuilder = app(CacheKeyBuilder::class);
+        $context    = $keyBuilder->context();
+
+        if ($this->resolveCacheType($request) === 'item') {
+            $id   = $request->input('filters.id');
+            $tags = [$cacheTag, $keyBuilder->itemTag($cacheTag, $id)];
+            $key  = $keyBuilder->itemKey($cacheTag, $context, $id);
+        } else {
+            $tags = [$cacheTag, $keyBuilder->listTag($cacheTag)];
+            $key  = $keyBuilder->listKey($cacheTag, $context, $request, $with);
+        }
+
+        return Cache::tags($tags)->remember(
+            $key,
+            now()->addSeconds($ttlSeconds),
+            function () use ($request, $with) {
+                return $this->runGetQuery($request, $with);
+            }
+        );
+    }
+
+    /**
+     * Folds EagerLoadableModelInterface::getEagerLoads() into $with, so N+1
+     * fixes apply to every caller automatically instead of relying on each
+     * controller/provider to pass eager loads explicitly (in practice, none
+     * of them do today).
+     *
+     * @param array<mixed> $with
+     * @return array<mixed>
+     */
+    protected function mergeEagerLoads(string $modelClass, array $with): array
+    {
+        if (!is_subclass_of($modelClass, EagerLoadableModelInterface::class)) {
+            return $with;
+        }
+
+        /** @var class-string<EagerLoadableModelInterface> $modelClass */
+        return array_values(array_unique([...$with, ...$modelClass::getEagerLoads()]));
     }
 
     /**
@@ -92,15 +127,6 @@ abstract class AbstractRepository implements RepositoryInterface
         }
 
         return (int)config('cache.resource_ttl_seconds', 3600);
-    }
-
-    /**
-     * @param array<mixed> $with
-     */
-    protected function buildCacheKey(string $tag, Request $request, array $with): string
-    {
-        $cacheType = $this->resolveCacheType($request);
-        return "{$tag}_{$cacheType}_" . md5(serialize($request->all()) . serialize($with));
     }
 
     protected function resolveCacheType(Request $request): string

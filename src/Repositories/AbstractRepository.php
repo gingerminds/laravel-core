@@ -35,7 +35,17 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $modelClass = $this->getModelClass();
         $with       = $this->mergeEagerLoads($modelClass, $with);
-        $cacheTag   = $this->getCacheTag($modelClass);
+
+        // Global kill switch (config('cache.activate'), env CACHE_ACTIVATE) —
+        // lets an environment run with caching fully off (e.g. while Redis
+        // is unavailable/misconfigured) without touching a single model.
+        // Eager loads above still apply either way, so N+1 fixes aren't
+        // affected by this toggle.
+        if (! config('cache.activate', true)) {
+            return $this->runGetQuery($request, $with);
+        }
+
+        $cacheTag = $this->getCacheTag($modelClass);
 
         if ($cacheTag === null) {
             return $this->runGetQuery($request, $with);

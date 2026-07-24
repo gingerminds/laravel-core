@@ -135,7 +135,9 @@ class LaravelCoreServiceProvider extends ServiceProvider
         // class per hierarchy. See ClassHierarchyResourceNameCollectionFactory.
         $this->app->extend(
             ResourceNameCollectionFactoryInterface::class,
-            static fn (ResourceNameCollectionFactoryInterface $inner) => new ClassHierarchyResourceNameCollectionFactory($inner)
+            static function (ResourceNameCollectionFactoryInterface $inner) {
+                return new ClassHierarchyResourceNameCollectionFactory($inner);
+            }
         );
 
         // Empty by default: core knows nothing about "site", "language" or
@@ -146,10 +148,12 @@ class LaravelCoreServiceProvider extends ServiceProvider
 
         $this->app->extend(
             ResourceMetadataCollectionFactoryInterface::class,
-            static fn (ResourceMetadataCollectionFactoryInterface $inner, $app) => new ContextHeaderParametersResourceMetadataCollectionFactory(
-                $inner,
-                $app->make(ApiHeaderParameterRegistry::class)
-            )
+            static function (ResourceMetadataCollectionFactoryInterface $inner, $app) {
+                return new ContextHeaderParametersResourceMetadataCollectionFactory(
+                    $inner,
+                    $app->make(ApiHeaderParameterRegistry::class)
+                );
+            }
         );
 
         $providerPath = __DIR__ . '/../ApiProvider';

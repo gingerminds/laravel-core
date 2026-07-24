@@ -32,13 +32,18 @@ final class ApiHeaderParameterRegistry
     /** @var array<class-string, HeaderParameter> */
     private array $parameters = [];
 
+    /**
+     * @param class-string $marker
+     */
     public function register(string $marker, HeaderParameter $parameter): void
     {
         $this->parameters[$marker] = $parameter;
     }
 
     /**
-     * @param class-string $resourceClass
+     * @param string|class-string $resourceClass accepts a plain string since
+     *                                            ResourceMetadataCollectionFactoryInterface::create()
+     *                                            itself only guarantees `string|class-string`
      *
      * @return HeaderParameter[]
      */

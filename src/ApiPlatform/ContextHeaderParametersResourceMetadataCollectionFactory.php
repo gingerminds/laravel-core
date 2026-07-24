@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\LaravelCore\ApiPlatform;
 
+use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Parameters;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
@@ -14,7 +15,8 @@ use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
  * so context headers (X-Site-Id, Accept-Language, X-Country-Id, ...) show up
  * in the OpenAPI/Swagger docs for exactly the resources that need them.
  */
-final class ContextHeaderParametersResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
+final class ContextHeaderParametersResourceMetadataCollectionFactory implements
+    ResourceMetadataCollectionFactoryInterface
 {
     public function __construct(
         private readonly ResourceMetadataCollectionFactoryInterface $decorated,
@@ -35,7 +37,7 @@ final class ContextHeaderParametersResourceMetadataCollectionFactory implements 
         foreach ($resourceMetadataCollection as $i => $resource) {
             $operations = $resource->getOperations();
 
-            if (!$operations) {
+            if (!$operations instanceof Operations) {
                 continue;
             }
 

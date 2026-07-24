@@ -3,8 +3,12 @@
 namespace Gingerminds\LaravelCore\Providers;
 
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\State\ProviderInterface;
+use Gingerminds\LaravelCore\ApiPlatform\ApiHeaderParameterRegistry;
+use Gingerminds\LaravelCore\ApiPlatform\ClassHierarchyResourceNameCollectionFactory;
+use Gingerminds\LaravelCore\ApiPlatform\ContextHeaderParametersResourceMetadataCollectionFactory;
 use Gingerminds\LaravelCore\ApiProvider\Permission\PermissionProvider;
 use Gingerminds\LaravelCore\ApiProvider\Role\RoleProvider;
 use Gingerminds\LaravelCore\ApiProvider\User\ContributorProvider;
@@ -122,6 +126,31 @@ class LaravelCoreServiceProvider extends ServiceProvider
                 $config->set('api-platform.resources', array_merge($resources, [$corePath]));
             }
         });
+
+        // Scanning both this package's Models/ (above) and the project's own
+        // app/Models means a project subclass that redeclares #[ApiResource]
+        // to override a package model (e.g. disabling operations on User)
+        // would otherwise be registered alongside — not instead of — the
+        // package's own class. This decorator keeps only the most-derived
+        // class per hierarchy. See ClassHierarchyResourceNameCollectionFactory.
+        $this->app->extend(
+            ResourceNameCollectionFactoryInterface::class,
+            static fn (ResourceNameCollectionFactoryInterface $inner) => new ClassHierarchyResourceNameCollectionFactory($inner)
+        );
+
+        // Empty by default: core knows nothing about "site", "language" or
+        // "country". Packages/projects that own a context register their own
+        // marker (a trait or interface FQCN) -> HeaderParameter mapping from
+        // their own service provider's boot() (see ApiHeaderParameterRegistry).
+        $this->app->singleton(ApiHeaderParameterRegistry::class);
+
+        $this->app->extend(
+            ResourceMetadataCollectionFactoryInterface::class,
+            static fn (ResourceMetadataCollectionFactoryInterface $inner, $app) => new ContextHeaderParametersResourceMetadataCollectionFactory(
+                $inner,
+                $app->make(ApiHeaderParameterRegistry::class)
+            )
+        );
 
         $providerPath = __DIR__ . '/../ApiProvider';
         $iterator     = new RecursiveIteratorIterator(

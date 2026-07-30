@@ -325,14 +325,18 @@ class LaravelCoreServiceProvider extends ServiceProvider
                 $fresh = $this->reloadForCache($model);
 
                 if ($fresh instanceof Model) {
-                    $ttl = $model::getCacheTtlSeconds() ?? (int) config('cache.resource_ttl_seconds', 3600);
+                    $ttl      = $model::getCacheTtl() ?? (int) config('cache.resource_ttl_seconds', 3600);
+                    $key      = $keyBuilder->itemKey($tag, $keyBuilder->context(), $id);
+                    $itemTags = Cache::tags([$tag, $keyBuilder->itemTag($tag, $id)]);
 
-                    if ($ttl > 0) {
-                        Cache::tags([$tag, $keyBuilder->itemTag($tag, $id)])->put(
-                            $keyBuilder->itemKey($tag, $keyBuilder->context(), $id),
-                            $fresh,
-                            now()->addSeconds($ttl)
-                        );
+                    // Cache::put() treats a string $ttl by casting it to an int
+                    // of seconds — passing the literal 'forever' through would
+                    // cast to 0 and immediately forget() the entry, so 'forever'
+                    // needs its own dedicated call.
+                    if (is_string($ttl)) {
+                        $itemTags->forever($key, $fresh);
+                    } elseif ($ttl > 0) {
+                        $itemTags->put($key, $fresh, now()->addSeconds($ttl));
                     }
                 }
             }

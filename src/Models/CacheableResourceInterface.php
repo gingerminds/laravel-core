@@ -15,5 +15,5 @@ interface CacheableResourceInterface
 {
     public static function getCacheKey(): string;
 
-    public static function getCacheTtlSeconds(): ?int;
+    public static function getCacheTtl(): int|string|null;
 }

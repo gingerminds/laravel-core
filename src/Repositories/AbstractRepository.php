@@ -36,8 +36,8 @@ abstract class AbstractRepository implements RepositoryInterface
         $modelClass = $this->getModelClass();
         $with       = $this->mergeEagerLoads($modelClass, $with);
 
-        $cacheTag   = $this->getCacheTag($modelClass);
-        $ttlSeconds = $this->resolveCacheTtlSeconds($modelClass);
+        $cacheTag = $this->getCacheTag($modelClass);
+        $ttl      = $this->resolveCacheTtl($modelClass);
 
         // Bypass the cache entirely when: the global kill switch is off
         // (config('cache.activate'), env CACHE_ACTIVATE — lets an environment
@@ -46,7 +46,7 @@ abstract class AbstractRepository implements RepositoryInterface
         // cacheable at all ($cacheTag === null); or its resolved TTL is
         // zero/negative. Eager loads above still apply in every case, so N+1
         // fixes aren't affected by any of this.
-        if (! config('cache.activate', true) || $cacheTag === null || $ttlSeconds <= 0) {
+        if (! config('cache.activate', true) || $cacheTag === null || (!is_string($ttl) && $ttl <= 0)) {
             return $this->runGetQuery($request, $with);
         }
 
@@ -62,13 +62,19 @@ abstract class AbstractRepository implements RepositoryInterface
             $key  = $keyBuilder->listKey($cacheTag, $context, $request, $with);
         }
 
-        return Cache::tags($tags)->remember(
-            $key,
-            now()->addSeconds($ttlSeconds),
-            function () use ($request, $with) {
-                return $this->runGetQuery($request, $with);
-            }
-        );
+        $callback = function () use ($request, $with) {
+            return $this->runGetQuery($request, $with);
+        };
+
+        // Cache::remember()/put() treat a string $ttl by casting it to an int
+        // of seconds — passing the literal 'forever' through would cast to 0
+        // and immediately forget() the entry, so 'forever' needs its own
+        // dedicated call instead of being funneled through $ttlValue.
+        if (is_string($ttl)) {
+            return Cache::tags($tags)->rememberForever($key, $callback);
+        }
+
+        return Cache::tags($tags)->remember($key, now()->addSeconds($ttl), $callback);
     }
 
     /**
@@ -118,16 +124,16 @@ abstract class AbstractRepository implements RepositoryInterface
         return $modelClass::getCacheKey();
     }
 
-    protected function resolveCacheTtlSeconds(string $modelClass): int
+    protected function resolveCacheTtl(string $modelClass): string|int
     {
         if (!is_subclass_of($modelClass, CacheableResourceInterface::class)) {
             return (int)config('cache.resource_ttl_seconds', 3600);
         }
 
         /** @var class-string<CacheableResourceInterface> $modelClass */
-        $ttl = $modelClass::getCacheTtlSeconds();
+        $ttl = $modelClass::getCacheTtl();
         if ($ttl !== null) {
-            return (int)$ttl;
+            return $ttl;
         }
 
         return (int)config('cache.resource_ttl_seconds', 3600);

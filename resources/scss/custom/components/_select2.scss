@@ -2,7 +2,7 @@
 // Select2 — Bootstrap theme integration
 //
 
-// Base select2 CSS (importé ici pour garantir que mes overrides viennent après)
+// Base select2 CSS, imported first so the overrides below take precedence
 @import "select2/dist/css/select2.min";
 
 .select2-container {

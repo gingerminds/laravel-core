@@ -101,9 +101,7 @@ class LaravelCoreServiceProvider extends ServiceProvider
         $this->app->bind(CacheContextResolverInterface::class, NullCacheContextResolver::class);
         $this->app->singleton(CacheKeyBuilder::class);
 
-        // Registre extensible des types de filtre (getFilters()' "type").
-        // Tout package peut ajouter le sien via FilterHandlerRegistry::register()
-        // depuis son propre service provider, sans modifier ce package.
+        // Built-in filter types; see FilterHandlerRegistry to add more.
         $this->app->singleton(FilterHandlerRegistry::class, function () {
             $registry = new FilterHandlerRegistry();
             $registry->register('date', new DateFilterHandler());
@@ -116,7 +114,6 @@ class LaravelCoreServiceProvider extends ServiceProvider
             return $registry;
         });
 
-        // Enregistrement des configurations ou services si nécessaire
         $this->app->register(LaravelCoreAuthServiceProvider::class);
 
         $this->app->resolving('config', function ($config) {
@@ -187,28 +184,23 @@ class LaravelCoreServiceProvider extends ServiceProvider
         Route::model('role', ResourceResolver::model('role'));
         Route::model('permission', ResourceResolver::model('permission'));
 
-        // Chargement des routes du package
         if (! $this->app->routesAreCached()) {
             $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
             $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
         }
 
-        // Chargement des migrations
         $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
 
-        // Enregistrement des composants Livewire
         Livewire::component(
             'gingerminds.core.list.filter.select-model',
             SelectModel::class
         );
 
-        // Chargement des vues
         $this->loadViewsFrom(
             __DIR__ . '/../../resources/views',
             'gingerminds-core'
         );
 
-        // Chargement des traductions
         $this->loadTranslationsFrom(
             __DIR__ . '/../../resources/lang',
             'gingerminds-core'
@@ -251,7 +243,6 @@ class LaravelCoreServiceProvider extends ServiceProvider
             $this->app->extend(
                 BaseModelMakeCommand::class,
                 function ($command, $app) {
-                    // ← le 2ème argument est le container
                     return new class ($app->make('files')) extends BaseModelMakeCommand {
                         protected function getStub(): string
                         {

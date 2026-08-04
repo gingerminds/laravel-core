@@ -18,11 +18,8 @@
         const selected = this.value;
         const url = new URL(window.location.href);
 
-        // Set items per page
         url.searchParams.set('itemsPerPage', selected);
-
-        // Remove page param (reset pagination)
-        url.searchParams.delete('page');
+        url.searchParams.delete('page'); // reset pagination when the page size changes
 
         window.location.href = url.toString();
     });

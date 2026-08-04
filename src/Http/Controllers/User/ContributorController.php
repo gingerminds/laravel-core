@@ -41,10 +41,8 @@ class ContributorController extends Controller
 
     public function create(): Factory|View
     {
-        // Autorisation de consulter le formulaire d'édition
         $this->authorize('create', ResourceResolver::model('contributor'));
 
-        // Charger la liste des utilisateurs pour lier/délier un compte utilisateur
         $users = User::query()
             ->select(['id','email'])
             ->orderBy('email')
@@ -86,10 +84,8 @@ class ContributorController extends Controller
 
     public function edit(Contributor $contributor): Factory|View
     {
-        // Autorisation de consulter le formulaire d'édition
         $this->authorize('update', $contributor);
 
-        // Charger la liste des utilisateurs pour lier/délier un compte utilisateur
         $users = User::query()
             ->select(['id','email'])
             ->orderBy('email')
@@ -106,7 +102,6 @@ class ContributorController extends Controller
 
     public function update(ContributorRequest $request, Contributor $contributor): RedirectResponse
     {
-        // Autorisation d'édition
         $this->authorize('update', $contributor);
 
         $request->validated();

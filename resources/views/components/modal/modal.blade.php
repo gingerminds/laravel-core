@@ -59,19 +59,16 @@
             const form = modal.querySelector('#form');
             const titleEl = modal.querySelector('#formModalLabel');
 
-            // ===== Helper pour pré-remplir les champs =====
             function fillFields(values) {
                 Object.entries(values).forEach(([key, value]) => {
-                    // 1) input / textarea (on ignore les hidden s'ils servent de fallback pour checkbox/radio)
-                    // on ignore aussi les checkbox/radio ici pour les traiter spécifiquement plus bas
+                    // input/textarea only here; checkboxes/radios and file previews are handled below
                     const input = modal.querySelector(`input[name="${key}"]:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), textarea[name="${key}"]`);
                     if (input) {
                         if (input.type === 'file') {
-                            // pour input file : on ne touche jamais .value
+                            // File inputs can't have .value set; update the preview image instead
                             const preview = modal.querySelector(`#${key}-preview`) || modal.querySelector(`#edit-${key}-preview`);
                             if (preview) preview.src = value || preview.getAttribute('data-default-src') || preview.src;
 
-                            // attach listener sur ce file input si pas déjà attaché
                             if (!input.dataset.listenerAttached) {
                                 input.addEventListener('change', e => {
                                     const file = e.target.files[0];
@@ -116,7 +113,7 @@
                             checkboxes.forEach(cb => cb.checked = set.has(String(cb.value)));
                         } else {
                             checkboxes.forEach(cb => {
-                                // Si value est un booléen et que la checkbox n'a pas de value spécifique (ou value="1")
+                                // Boolean values check/uncheck regardless of the checkbox's own value attribute
                                 if (typeof value === 'boolean') {
                                     cb.checked = value;
                                 } else {
@@ -139,35 +136,27 @@
                 });
             }
 
-            // ===== Pré-remplir à l'ouverture du modal =====
             modal.addEventListener('show.bs.modal', event => {
                 const button = event.relatedTarget;
                 if (!button) return;
 
-                // Titre de la modale
                 const mode   = button.dataset.mode || 'edit'; // create | edit
                 const gender = button.dataset.gender || 'm';  // m | f
                 const model  = button.dataset.model  || '';   // ex: "rôle", "catégorie"
-
-                // article masculin/féminin
                 const article = gender === 'f' ? 'une' : 'un';
 
-                // récupère la template depuis data-title-create ou data-title-edit
+                // Template key is built from data-title-{mode}, e.g. data-title-edit
                 const template = titleEl.dataset[`title${mode.charAt(0).toUpperCase() + mode.slice(1)}`];
-
-                // remplace les placeholders
                 titleEl.textContent = template
                     .replace('{article}', article)
                     .replace('{model}', model);
 
-
-                // parse JSON des valeurs
                 let raw = button.getAttribute('data-values') || '{}';
                 let values = {};
-                // tenter JSON.parse ; si échec, remplacer &quot; par " puis retenter
                 try {
                     values = JSON.parse(raw);
                 } catch (e) {
+                    // Blade's escaping can leave entities in the JSON attribute; normalize and retry
                     try {
                         const normalized = raw.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
                         values = JSON.parse(normalized);
@@ -177,18 +166,16 @@
                     }
                 }
 
-                // Gestion de l'URL d'action et de la méthode (POST par défaut, spoof PUT seulement en édition)
+                // HTML forms don't support PUT, so we always submit POST and spoof
+                // the real method via Laravel's `_method` field when editing.
                 if (form) {
-                    // Nettoyer un éventuel spoof précédent
                     const existingMethod = form.querySelector('input[name="_method"]');
                     if (existingMethod) existingMethod.remove();
 
-                    // Déterminer l'URL selon le mode
                     const updateUrl = button.getAttribute('data-update-url') || button.dataset.updateUrl;
 
                     if (mode === 'edit' && updateUrl) {
                         form.action = updateUrl;
-                        // Ajouter le spoof PUT
                         const spoof = document.createElement('input');
                         spoof.type = 'hidden';
                         spoof.name = '_method';
@@ -196,14 +183,12 @@
                         form.appendChild(spoof);
                     }
 
-                    // Toujours en POST côté balise form
                     form.method = 'POST';
                 }
 
                 fillFields(values);
             });
 
-            // ===== Reset du modal à la fermeture =====
             modal.addEventListener('hidden.bs.modal', () => {
                 if (!form) return;
                 form.reset();

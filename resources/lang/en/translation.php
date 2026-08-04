@@ -48,7 +48,6 @@ return [
             'password' => 'Password',
             'password_placeholder' => 'Enter your password',
             'remember' => 'Remember me',
-            'forgot_password' => 'Forgot your password ?',
         ]
     ],
 

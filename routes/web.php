@@ -19,7 +19,6 @@ Route::middleware('web')
         Route::controller(AuthController::class)->group(function () {
             Route::get('login', 'login')->name('login');
             Route::post('login', 'authenticate')->name('authenticate');
-            Route::get('reset-password', 'reset')->name('reset-password');
         });
 
         Route::middleware(['gingerminds-core.auth'])->group(function () {

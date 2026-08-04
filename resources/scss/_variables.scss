@@ -4,7 +4,7 @@
 // custom-variables
 //
 
-// Vertical Sidebar  Light (kept for other components still reading these; the sidebar itself is always dark, see below)
+// Vertical Sidebar - Light (legacy values, still read by other components; the sidebar itself is always dark, see below)
 $sidebar-bg:                                          #ffffff;
 $sidebar-menu-item-color:                             #3d4c5e;
 $sidebar-menu-sub-item-color:                         #7a8ea6;
@@ -153,10 +153,8 @@ $light:         $gray-200;
 $dark:          $gray-800;
 // scss-docs-end theme-color-variables
 
-// Main accent color of the sidebar menu (active item, chevrons, collapse toggle).
-// Defaults to the theme's $primary; exposed as the --bs-sidebar-menu-primary-color
-// CSS variable (see _root.scss) so consuming projects can override it at runtime
-// (e.g. a brand color) without recompiling the Sass.
+// Sidebar menu accent color; exposed as --bs-sidebar-menu-primary-color (see _root.scss)
+// so consuming projects can override it at runtime without recompiling the Sass.
 $sidebar-menu-primary-color:                          $primary;
 $sidebar-menu-item-active-color:                      $sidebar-menu-primary-color;
 

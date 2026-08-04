@@ -81,7 +81,6 @@ class UserController extends Controller
 
     public function update(UserRequest $request, User $user): RedirectResponse
     {
-        // Autorisation d'édition
         $this->authorize('update', $user);
 
         $request->validated();
@@ -98,7 +97,6 @@ class UserController extends Controller
 
     public function edit(User $user): Factory|View
     {
-        // Autorisation de consulter le formulaire d'édition
         $this->authorize('update', $user);
 
         $roles        = Role::query()->orderBy('name')->get();

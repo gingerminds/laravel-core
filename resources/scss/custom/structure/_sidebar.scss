@@ -242,6 +242,14 @@ ul .bi::before {
   .btn-single .label-text,
   .btn-toggle::after { display: none; }
 
+  // Bootstrap's collapse data-api listener is registered on `document` with
+  // useCapture:true, so it always runs before any bubble-phase JS guard on an
+  // ancestor — stopPropagation() from a descendant can't intercept it in time.
+  // Blocking the click at the CSS layer sidesteps that entirely.
+  .btn-toggle {
+    pointer-events: none;
+  }
+
   .btn-toggle i,
   .btn-single i,
   .sidebar-avatar,

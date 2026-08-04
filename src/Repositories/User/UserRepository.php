@@ -33,19 +33,16 @@ class UserRepository extends AbstractRepository implements RepositoryInterface
             return $resourceModel;
         }
 
-        // Mise à jour des champs basiques et password
         $resourceModel->fill($request->only(['email']));
         if ($request->filled('password')) {
             $resourceModel->password = $request->input('password');
         }
         $resourceModel->save();
 
-        // Synchronisation des rôles
         if (is_array($request->input('roles'))) {
             $resourceModel->syncRoles($request->input('roles'));
         }
 
-        // Extraction de la logique complexe
         if ($request->has('contributor_id')) {
             $this->handleContributorUpdate($request, $resourceModel);
         }

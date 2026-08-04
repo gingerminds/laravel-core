@@ -34,7 +34,6 @@ class ContributorRepository extends AbstractRepository implements RepositoryInte
             return $resourceModel;
         }
 
-        // Mise à jour des champs basiques
         $resourceModel->fill($request->all());
         $resourceModel->save();
 

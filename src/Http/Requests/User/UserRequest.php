@@ -32,7 +32,6 @@ class UserRequest extends FormRequest implements FormRequestInterface
             'roles.*'  => 'string',
             // Permet soit un id existant, soit la valeur spéciale "__new__" pour créer un nouveau contributeur côté dépôt
             'contributor_id' => 'nullable',
-            // Champs d'édition du contributeur associé
             'contributor_firstname' => 'nullable|string|max:255',
             'contributor_lastname'  => 'nullable|string|max:255',
             'contributor_trigram'   => 'nullable|string|max:50',

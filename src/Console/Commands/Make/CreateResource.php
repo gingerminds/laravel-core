@@ -57,7 +57,6 @@ class CreateResource extends Command
      */
     protected function executeSteps(string $name): void
     {
-        // Step 0: Model, Migration, Factory
         $modelOptions = ['name' => $name];
         if ($this->option('migration')) {
             $modelOptions['--migration'] = true;
@@ -70,7 +69,6 @@ class CreateResource extends Command
         $this->call('make:repository', ['name' => $name]);
         $this->call('make:form-request', ['name' => $name]);
 
-        // Step 3: Controller Full (Blades, Routes, Trad)
         $controllerOptions = ['name' => $name];
         if ($this->option('trad-base')) {
             $controllerOptions['--trad-base'] = $this->option('trad-base');

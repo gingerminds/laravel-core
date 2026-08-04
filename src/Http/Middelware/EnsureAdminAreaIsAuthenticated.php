@@ -17,7 +17,6 @@ class EnsureAdminAreaIsAuthenticated
     private const array GUEST_ROUTE_NAMES = [
         'gingerminds-core.login',
         'gingerminds-core.authenticate',
-        'gingerminds-core.reset-password',
     ];
 
     public function handle(Request $request, Closure $next): Response

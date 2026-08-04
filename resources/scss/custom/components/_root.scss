@@ -19,12 +19,16 @@
     --bs-footer-color:                           #{$footer-color}; 
 
     // Horizontal nav
-    --bs-topnav-bg:                              #{$topnav-bg}; 
-    --bs-menu-item-color:                        #{$menu-item-color}; 
-    --bs-menu-item-active-color:                 #{$menu-item-active-color}; 
+    --bs-topnav-bg:                              #{$topnav-bg};
+    --bs-menu-item-color:                        #{$menu-item-color};
+    --bs-menu-item-active-color:                 #{$menu-item-active-color};
+
+    // Sidebar
+    --bs-sidebar-menu-primary-color:             #{$sidebar-menu-primary-color};
+    --bs-sidebar-menu-card-bg:                   #{$sidebar-menu-card-bg};
 
     // Boxed layout width
-    --bs-boxed-body-bg:                          #{$boxed-body-bg}; 
+    --bs-boxed-body-bg:                          #{$boxed-body-bg};
 
     --bs-display-none:                           #{$display-none};
     --bs-display-block:                          #{$display-block};
@@ -47,9 +51,9 @@
         --bs-footer-color:                           #{$footer-color-dark}; 
 
         // Horizontal nav
-        --bs-topnav-bg:                              #{$topnav-bg-dark}; 
-        --bs-menu-item-color:                        #{$menu-item-color-dark}; 
-        --bs-menu-item-active-color:                 #{$menu-item-active-color-dark}; 
+        --bs-topnav-bg:                              #{$topnav-bg-dark};
+        --bs-menu-item-color:                        #{$menu-item-color-dark};
+        --bs-menu-item-active-color:                 #{$menu-item-active-color-dark};
 
         // Boxed layout width
         --bs-boxed-body-bg:                          #{$boxed-body-bg-dark};

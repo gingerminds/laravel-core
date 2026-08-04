@@ -45,18 +45,18 @@
 @endphp
 
 @if($shouldDisplay)
-    <li class="mb-1">
-        @if($items)
-            <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 {{ $expanded ? '' : 'collapsed' }} {{ $isActive ? 'active' : '' }}" data-bs-toggle="collapse"
+    @if($items)
+        <li class="sidebar-card-group">
+            <button class="btn btn-toggle d-flex align-items-center rounded border-0 {{ $expanded ? '' : 'collapsed' }} {{ $isActive ? 'active' : '' }}" data-bs-toggle="collapse"
                     data-bs-target="#{{ $id }}" aria-expanded="{{ $expanded ? 'true' : 'false' }}">
                 <i class="{{ $icon }} me-2"></i>
-                {{ $label }}
+                <span class="label-text">{{ $label }}</span>
             </button>
-            <div class="collapse {{ $expanded ? 'show' : '' }}" id="{{ $id }}">
+            <div class="collapse {{ $expanded ? 'show' : '' }}" id="{{ $id }}" data-bs-parent="#sidebarMenuAccordion">
                 <ul class="btn-toggle-nav list-unstyled fw-normal pb-1">
                     @foreach($filteredItems as $item)
                         <li>
-                            <a href="{{ $item['route'] }}" class="d-inline-flex text-decoration-none rounded align-items-center {{ is_url_active($item['route']) ? 'active' : '' }}">
+                            <a href="{{ $item['route'] }}" class="d-flex text-decoration-none rounded align-items-center {{ is_url_active($item['route']) ? 'active' : '' }}">
                                 @if(isset($item['icon']))
                                     <i class="{{ $item['icon'] }} me-2"></i>
                                 @endif
@@ -66,11 +66,13 @@
                     @endforeach
                 </ul>
             </div>
-        @else
-            <a href="{{ $route }}" class="btn btn-single rounded border-0 d-inline-flex align-items-center {{ $isActive ? 'active' : '' }}">
+        </li>
+    @else
+        <li class="sidebar-card-group">
+            <a href="{{ $route }}" class="btn btn-single rounded border-0 d-flex align-items-center {{ $isActive ? 'active' : '' }}">
                 <i class="{{ $icon }} me-2"></i>
-                {{ $label }}
+                <span class="label-text">{{ $label }}</span>
             </a>
-        @endif
-    </li>
+        </li>
+    @endif
 @endif

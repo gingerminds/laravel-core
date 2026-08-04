@@ -1,11 +1,14 @@
-<div class="sidebar d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
+<div class="sidebar d-flex flex-column flex-shrink-0" id="mainSidebar">
+    <div class="sidebar-toggle" id="sidebarToggle"><span class="sidebar-toggle-icon"></span></div>
     @include('gingerminds-core::layouts.header.partials.logo')
     <hr>
-    @include('gingerminds-core::layouts.sidebar.partials.dashboard_menu_items')
+    <div class="sidebar-menu">
+        @include('gingerminds-core::layouts.sidebar.partials.dashboard_menu_items')
+    </div>
     <hr>
     <div class="dropdown">
         <a href="#"
-           class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+           class="d-flex align-items-center text-white text-decoration-none dropdown-toggle sidebar-profile-toggle"
            data-bs-toggle="dropdown" aria-expanded="false">
             @php($user = Auth::user())
             @if($user && $user->contributor && $user->contributor->avatar)
@@ -13,11 +16,16 @@
                      alt="" width="32" height="32"
                      class="rounded-circle me-2">
             @else
-                <div class="rounded-circle me-2 bg-primary d-flex align-items-center justify-content-center text-white fw-bold" style="width: 32px; height: 32px; font-size: 12px;">
+                <div class="rounded-circle me-2 sidebar-avatar d-flex align-items-center justify-content-center text-white fw-bold" style="width: 32px; height: 32px; font-size: 12px;">
                     {{ $user ? strtoupper(substr($user->email, 0, 1)) : '?' }}
                 </div>
             @endif
-            <strong>{{ $user ? ($user->contributor ? $user->contributor->firstname . ' ' . $user->contributor->lastname : $user->email) : 'Guest' }}</strong>
+            <span class="profile-info">
+                <strong class="d-block">{{ $user ? ($user->contributor ? $user->contributor->firstname . ' ' . $user->contributor->lastname : $user->email) : 'Guest' }}</strong>
+                @if($user && $user->getRoleNames()->isNotEmpty())
+                    <small class="profile-role d-block">{{ $user->getRoleNames()->first() }}</small>
+                @endif
+            </span>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
             <li><a class="dropdown-item" href="{{ route('gingerminds-core.profile.edit-profile') }}">@lang('gingerminds-core::translation.profile.settings')</a></li>

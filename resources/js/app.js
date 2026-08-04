@@ -38,4 +38,30 @@ document.addEventListener('DOMContentLoaded', function () {
                .on('select2:select select2:unselect', () => resetMultipleSelectPlaceholder(this));
         resetMultipleSelectPlaceholder(this);
     });
+
+    const sidebar = document.getElementById('mainSidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+
+    if (sidebar && sidebarToggle) {
+        if (localStorage.getItem('sidebarCollapsed') === '1') {
+            sidebar.classList.add('collapsed');
+        }
+
+        sidebarToggle.addEventListener('click', function () {
+            const collapsed = sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0');
+        });
+
+        // In rail (icons-only) mode the menu groups are force-hidden via CSS, but
+        // Bootstrap's collapse plugin would still toggle their internal show/hide
+        // state on click — leaving them in a stale, unexpected state once the
+        // sidebar is expanded again. Stop the click before it reaches Bootstrap's
+        // own document-level collapse handler.
+        sidebar.addEventListener('click', function (e) {
+            if (sidebar.classList.contains('collapsed') && e.target.closest('[data-bs-toggle="collapse"]')) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+    }
 });

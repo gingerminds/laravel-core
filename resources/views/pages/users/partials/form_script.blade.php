@@ -25,11 +25,10 @@
 
         if (select) {
             select.addEventListener('change', function () {
-                // À chaque changement, on alimente les champs avec les valeurs de l'option sélectionnée
                 const value = select.value;
                 const opt = select.options[select.selectedIndex];
                 if (value === '__new__') {
-                    // Nouveau contributeur: on vide les champs pour saisie
+                    // '__new__' means "create a new contributor": clear fields for manual entry
                     if (fFirst) fFirst.value = '';
                     if (fLast) fLast.value = '';
                     if (fTrig) fTrig.value = '';
@@ -44,7 +43,6 @@
             });
         }
 
-        // Initialiser à l'ouverture de la page
         syncVisibility();
     })();
 </script>

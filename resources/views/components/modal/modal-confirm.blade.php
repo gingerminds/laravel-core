@@ -1,5 +1,3 @@
-{{-- resources/views/components/modal/modal-confirm.blade.php --}}
-
 <div class="modal fade" id="{{ $id ?? 'confirmModal' }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-md">
         <div class="modal-content">

@@ -50,7 +50,6 @@ class CreateUser extends Command
 
                 $user->assignRole($role);
 
-                // Correction : Le lien est fait ici via user_id
                 Contributor::create([
                     'lastname'  => $lastname,
                     'firstname' => $firstname,

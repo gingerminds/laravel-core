@@ -1,4 +1,4 @@
-<ul class="list-unstyled ps-0">
+<ul class="list-unstyled ps-0" id="sidebarMenuAccordion">
     <x-gingerminds-core::navigation.partial.nav_item
         :route="route('dashboard')"
         :icon="'bi bi-speedometer2'"

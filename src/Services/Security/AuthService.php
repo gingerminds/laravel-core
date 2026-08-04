@@ -23,12 +23,10 @@ class AuthService
 
             $throttleKey = Str::lower($credentials['username']) . '|' . $request->ip();
 
-            // 1. Vérification Rate Limit
             if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
                 throw new Exception('USER_BLOCKED', 403);
             }
 
-            // 2. Tentative d'authentification
             if (
                 !Auth::attempt([
                 'email'    => $credentials['username'],
@@ -39,7 +37,6 @@ class AuthService
                 throw new Exception('CREDENTIALS_NOT_VALID', 401);
             }
 
-            // 3. Vérification du Domaine
             if (!$this->isDomainAuthorized($request)) {
                 throw new Exception('USER_NOT_AUTHORIZED', 401);
             }

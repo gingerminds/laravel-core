@@ -80,12 +80,6 @@
                                         <div class="mt-3 d-grid">
                                             <button class="btn btn-primary waves-effect waves-light" type="submit">@lang('gingerminds-core::translation.auth.form.login')</button>
                                         </div>
-
-{{--                                        <div class="mt-4 text-center">--}}
-{{--                                            <a href="{{ route('gingerminds-core.reset-password') }}" class="text-muted">--}}
-{{--                                                <i class="mdi mdi-lock me-1"></i> @lang('gingerminds-core::translation.auth.form.forgot_password')--}}
-{{--                                            </a>--}}
-{{--                                        </div>--}}
                                     </form>
                                 </div>
 

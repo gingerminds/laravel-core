@@ -7,28 +7,21 @@
                 const sortProperty = th.dataset.sort;
                 if (!sortProperty) return;
 
-                // Récupérer les query params actuelles
                 const urlParams = new URLSearchParams(window.location.search);
-
-                // Supprimer la pagination
                 urlParams.delete('page');
 
-                // Déterminer le prochain sort
                 let currentSortBy = urlParams.get('sortBy');
                 let currentSort = urlParams.get('sort');
 
                 if (currentSortBy === sortProperty) {
-                    // même colonne : toggle desc/asc
-                    currentSort = currentSort === 'desc' ? 'asc' : 'desc';
+                    currentSort = currentSort === 'desc' ? 'asc' : 'desc'; // same column: toggle direction
                 } else {
-                    // nouvelle colonne : mettre desc par défaut
-                    currentSort = 'desc';
+                    currentSort = 'desc'; // new column: default to desc
                 }
 
                 urlParams.set('sortBy', sortProperty);
                 urlParams.set('sort', currentSort);
 
-                // Redirection
                 window.location.search = urlParams.toString();
             });
         });

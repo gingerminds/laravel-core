@@ -28,14 +28,8 @@
         default => 'col-md-6 col-sm-12'
     };
 
-    /**
-     * Laravel expects dot notation for errors + old()
-     */
+    // Laravel's error bag and old() both expect dot notation, not bracket notation
     $errorKey = str_replace(['[', ']'], ['.', ''], $fieldName);
-
-    /**
-     * Important: old() fallback ONLY works with dot notation
-     */
     $oldValue = old($errorKey, $value);
 
     // `prefix`/`suffix` wrap the input in a Bootstrap input-group (e.g. a

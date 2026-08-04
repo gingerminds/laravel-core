@@ -114,7 +114,6 @@ class CreatePolicy extends Command
         $modelFqcn  = "App\\Models\\{$namespace}\\{$model}";
         $policyFqcn = "App\\Policies\\{$namespace}\\{$model}Policy";
 
-        // Correction du bug : utilisation de la chaîne correcte au lieu d'une variable indéfinie
         if (str_contains($content, "{$model}::class") && str_contains($content, "{$model}Policy::class")) {
             $this->info('Policy already registered in AuthServiceProvider');
             return;

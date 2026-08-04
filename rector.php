@@ -8,20 +8,16 @@ use Rector\TypeDeclaration\Rector\Property\TypedPropertyFromStrictConstructorRec
 use Rector\Set\ValueObject\SetList;
 
 return static function (RectorConfig $rectorConfig): void {
-    // Activer les sets préparés
     $rectorConfig->sets([
         SetList::CODE_QUALITY,
         SetList::DEAD_CODE,
         SetList::PHP_84,
     ]);
 
-    // Ajouter des règles rector
     $rectorConfig->rules([
         TypedPropertyFromStrictConstructorRector::class,
         AddReturnTypeDeclarationRector::class
     ]);
-
-    // Pour en ajouter d'autres : https://getrector.com/find-rule
 
     $rectorConfig->paths([
         __DIR__ . '/src',

@@ -38,4 +38,18 @@ document.addEventListener('DOMContentLoaded', function () {
                .on('select2:select select2:unselect', () => resetMultipleSelectPlaceholder(this));
         resetMultipleSelectPlaceholder(this);
     });
+
+    const sidebar = document.getElementById('mainSidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+
+    if (sidebar && sidebarToggle) {
+        if (localStorage.getItem('sidebarCollapsed') === '1') {
+            sidebar.classList.add('collapsed');
+        }
+
+        sidebarToggle.addEventListener('click', function () {
+            const collapsed = sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0');
+        });
+    }
 });

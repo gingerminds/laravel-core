@@ -50,7 +50,6 @@ return [
             'password' => 'Mot de passe',
             'password_placeholder' => 'Entrez votre mot de passe',
             'remember' => 'Se souvenir de moi',
-            'forgot_password' => 'Mot de passe oublié ?',
         ]
     ],
 

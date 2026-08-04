@@ -84,13 +84,24 @@
   padding: .5rem .625rem;
   border-radius: $border-radius;
   font-weight: 600;
+  line-height: 1.25;
   color: $sidebar-dark-menu-item-color;
   background-color: transparent;
+  appearance: none;
   display: flex;
   align-items: center;
   text-decoration: none;
   width: 100%;
   text-align: left;
+
+  // Firefox's UA stylesheet pads/borders the focus ring inside <button>
+  // via a pseudo-element that author padding/border-0 can't reach, which
+  // otherwise makes .btn-toggle (a <button>) render taller than .btn-single
+  // (an <a>) even with identical padding.
+  &::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+  }
 
   &:hover,
   &:focus {

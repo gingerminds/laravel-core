@@ -10,7 +10,7 @@ if (!function_exists('is_url_active')) {
         if (!$path) {
             return false;
         }
-        $pattern = ltrim($path, '/') . '*';
-        return request()->is($pattern);
+        $path = ltrim($path, '/');
+        return request()->is($path) || request()->is($path . '/*');
     }
 }

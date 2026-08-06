@@ -24,7 +24,7 @@ class EnsureAdminAreaIsAuthenticated
         $prefix    = trim((string) config('gingerminds-core.admin_prefix'), '/');
         $routeName = $request->route()?->getName();
 
-        $isAdminRoute = $prefix    !== ''      && $request->is($prefix, $prefix . '/*');
+        $isAdminRoute = $prefix    !== ''   && $request->is($prefix, $prefix . '/*');
         $isGuestRoute = $routeName !== null && in_array($routeName, self::GUEST_ROUTE_NAMES, true);
 
         if (! $isAdminRoute || $isGuestRoute || Auth::guard('web')->check()) {

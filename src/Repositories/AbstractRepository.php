@@ -253,9 +253,21 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $model = $query->getModel();
         if ($model instanceof SearchableModelInterface && array_key_exists('search', $filters)) {
-            $query->where(function (Builder $query) use ($filters, $model) {
+            $search = $filters['search'];
+
+            $query->where(function (Builder $query) use ($search, $model) {
                 foreach ($model::getSearchableFields() as $field) {
-                    $query->orWhere($field, 'like', '%' . $filters['search'] . '%');
+                    if (str_contains($field, '.')) {
+                        [$relation, $column] = explode('.', $field, 2);
+
+                        $query->orWhereHas($relation, function (Builder $relationQuery) use ($column, $search) {
+                            $relationQuery->where($column, 'like', '%' . $search . '%');
+                        });
+
+                        continue;
+                    }
+
+                    $query->orWhere($field, 'like', '%' . $search . '%');
                 }
             });
         }

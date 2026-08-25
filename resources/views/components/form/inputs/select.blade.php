@@ -8,6 +8,7 @@
     'disabled' => false,
     'helper' => null,
     'ajaxUrl' => null,
+    'maxSelection' => null,
 ])
 
 @php
@@ -28,6 +29,7 @@
             id="{{ $id }}"
             class="form-select select2 @error($id) is-invalid @enderror @if($search || $ajaxUrl) select2-search @endif"
             @if($ajaxUrl) data-ajax-url="{{ $ajaxUrl }}" @endif
+            @if($maxSelection) data-max-selection="{{ $maxSelection }}" @endif
             @if($required) required @endif
             @if($multiple) multiple @endif
             @if($disabled) disabled @endif

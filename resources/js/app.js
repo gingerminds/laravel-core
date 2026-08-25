@@ -5,6 +5,7 @@ window.Sortable = Sortable;
 import 'bootstrap';
 import initSelect2 from 'select2';
 initSelect2(window, $);
+import initAjaxSelect2 from './select2-ajax';
 
 function resetMultipleSelectPlaceholder(el) {
     $(el).next('.select2-container')
@@ -31,13 +32,15 @@ document.addEventListener('click', function (e) {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-    $('.select2:not([multiple])').select2();
+    $('.select2:not([multiple]):not(.select2-search)').select2();
 
-    $('.select2[multiple]').each(function () {
+    $('.select2[multiple]:not(.select2-search)').each(function () {
         $(this).select2({ placeholder: 'Add an option' })
                .on('select2:select select2:unselect', () => resetMultipleSelectPlaceholder(this));
         resetMultipleSelectPlaceholder(this);
     });
+
+    initAjaxSelect2($, resetMultipleSelectPlaceholder);
 
     const sidebar = document.getElementById('mainSidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');

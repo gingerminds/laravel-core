@@ -11,19 +11,7 @@ use Illuminate\Routing\Controller as BaseController;
 
 abstract class AbstractController extends BaseController
 {
-    use AuthorizesRequests {
-        authorize as protected baseAuthorize;
-    }
+    use AuthorizesRequests;
     use DispatchesJobs;
     use ValidatesRequests;
-
-    /**
-     * @param mixed $ability
-     * @param mixed $arguments
-     * @return bool
-     */
-    public function authorize($ability, $arguments = [])
-    {
-        return true;
-    }
 }

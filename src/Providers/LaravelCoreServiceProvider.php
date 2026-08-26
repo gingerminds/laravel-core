@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\State\ProviderInterface;
+use ApiPlatform\State\SerializerContextBuilderInterface;
 use Gingerminds\LaravelCore\ApiPlatform\ApiHeaderParameterRegistry;
 use Gingerminds\LaravelCore\ApiPlatform\ClassHierarchyResourceNameCollectionFactory;
 use Gingerminds\LaravelCore\ApiPlatform\ContextHeaderParametersResourceMetadataCollectionFactory;
@@ -54,6 +55,7 @@ use Gingerminds\LaravelCore\Repositories\Role\RoleRepository;
 use Gingerminds\LaravelCore\Repositories\User\ContributorRepository;
 use Gingerminds\LaravelCore\Repositories\User\UserRepository;
 use Gingerminds\LaravelCore\Resolver\ResourceResolver;
+use Gingerminds\LaravelCore\Serializer\ContextBuilder\EmbeddedResourceAttributesFixContextBuilder;
 use Gingerminds\LaravelCore\Serializer\JsonCollectionNormalizer;
 use Gingerminds\LaravelCore\StateProcessor\Permission\PermissionStateProcessor;
 use Gingerminds\LaravelCore\StateProcessor\Role\RoleStateProcessor;
@@ -151,6 +153,17 @@ class LaravelCoreServiceProvider extends ServiceProvider
                     $app->make(ApiHeaderParameterRegistry::class)
                 );
             }
+        );
+
+        // Works around a bug in api-platform/laravel's own Eloquent
+        // SerializerContextBuilder: it auto-fills the ATTRIBUTES context key
+        // with the requested resource's own property list, which then leaks
+        // into every embedded resource and silently drops any of its fields
+        // that aren't also a property of the parent. See
+        // EmbeddedResourceAttributesFixContextBuilder for the full story.
+        $this->app->extend(
+            SerializerContextBuilderInterface::class,
+            static fn (SerializerContextBuilderInterface $inner) => new EmbeddedResourceAttributesFixContextBuilder($inner)
         );
 
         $providerPath = __DIR__ . '/../ApiProvider';

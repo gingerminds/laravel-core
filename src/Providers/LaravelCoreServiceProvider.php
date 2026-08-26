@@ -163,7 +163,8 @@ class LaravelCoreServiceProvider extends ServiceProvider
         // EmbeddedResourceAttributesFixContextBuilder for the full story.
         $this->app->extend(
             SerializerContextBuilderInterface::class,
-            static fn (SerializerContextBuilderInterface $inner) => new EmbeddedResourceAttributesFixContextBuilder($inner)
+            static fn (SerializerContextBuilderInterface $inner)
+            => new EmbeddedResourceAttributesFixContextBuilder($inner)
         );
 
         $providerPath = __DIR__ . '/../ApiProvider';

@@ -155,7 +155,7 @@ class Role extends SpatieRole implements
     }
 
     /**
-     * @return MorphToMany<User, $this, MorphPivot, 'pivot'>
+     * @return MorphToMany<\Illuminate\Database\Eloquent\Model, $this, MorphPivot, 'pivot'>
      */
     public function users(): MorphToMany
     {

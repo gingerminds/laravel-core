@@ -2,10 +2,12 @@
 
 namespace Gingerminds\LaravelCore\Resolver;
 
+use Illuminate\Database\Eloquent\Model;
+
 class ResourceResolver
 {
     /**
-     * @return class-string<\Illuminate\Database\Eloquent\Model>
+     * @return class-string<Model>
      */
     public static function model(string $resource): string
     {

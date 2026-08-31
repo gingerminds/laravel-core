@@ -18,6 +18,7 @@ use Gingerminds\LaravelCore\Models\SortableModelInterface;
 use Gingerminds\LaravelCore\Models\User\User;
 use Gingerminds\LaravelCore\Resolver\ResourceResolver;
 use Gingerminds\LaravelCore\StateProcessor\Role\RoleStateProcessor;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Spatie\Permission\Models\Role as SpatieRole;
@@ -155,7 +156,7 @@ class Role extends SpatieRole implements
     }
 
     /**
-     * @return MorphToMany<\Illuminate\Database\Eloquent\Model, $this, MorphPivot, 'pivot'>
+     * @return MorphToMany<Model, $this, MorphPivot, 'pivot'>
      */
     public function users(): MorphToMany
     {

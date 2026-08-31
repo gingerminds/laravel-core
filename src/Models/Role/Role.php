@@ -16,6 +16,7 @@ use Gingerminds\LaravelCore\Models\ResourceModelInterface;
 use Gingerminds\LaravelCore\Models\SearchableModelInterface;
 use Gingerminds\LaravelCore\Models\SortableModelInterface;
 use Gingerminds\LaravelCore\Models\User\User;
+use Gingerminds\LaravelCore\Resolver\ResourceResolver;
 use Gingerminds\LaravelCore\StateProcessor\Role\RoleStateProcessor;
 use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -159,7 +160,7 @@ class Role extends SpatieRole implements
     public function users(): MorphToMany
     {
         return $this->morphedByMany(
-            User::class,
+            ResourceResolver::model('user'),
             'model',
             'model_has_roles',
             'role_id',

@@ -2,8 +2,13 @@
 
 namespace Gingerminds\LaravelCore\Resolver;
 
+use Illuminate\Database\Eloquent\Model;
+
 class ResourceResolver
 {
+    /**
+     * @return class-string<Model>
+     */
     public static function model(string $resource): string
     {
         return config("gingerminds-core.resources.{$resource}.model");

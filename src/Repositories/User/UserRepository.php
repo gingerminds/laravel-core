@@ -8,6 +8,7 @@ use Gingerminds\LaravelCore\Models\User\Contributor;
 use Gingerminds\LaravelCore\Models\User\User;
 use Gingerminds\LaravelCore\Repositories\AbstractRepository;
 use Gingerminds\LaravelCore\Repositories\RepositoryInterface;
+use Gingerminds\LaravelCore\Resolver\ResourceResolver;
 use InvalidArgumentException;
 
 /**
@@ -18,7 +19,7 @@ class UserRepository extends AbstractRepository implements RepositoryInterface
 {
     public function getModelClass(): string
     {
-        return User::class;
+        return ResourceResolver::model('user');
     }
 
     public function update(

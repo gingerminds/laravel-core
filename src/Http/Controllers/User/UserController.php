@@ -29,7 +29,7 @@ class UserController extends Controller
 
     public function index(Request $request): Factory|View
     {
-        $this->authorize('viewAny');
+        $this->authorize('viewAny', ResourceResolver::model('user'));
 
         $users = $this->userRepository->get($request);
         $roles = Role::query()->orderBy('name')->get();

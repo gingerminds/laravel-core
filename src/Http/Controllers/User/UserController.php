@@ -29,7 +29,7 @@ class UserController extends Controller
 
     public function index(Request $request): Factory|View
     {
-        $this->authorize('viewAny');
+        $this->authorize('viewAny', ResourceResolver::model('user'));
 
         $users = $this->userRepository->get($request);
         $roles = Role::query()->orderBy('name')->get();
@@ -69,8 +69,13 @@ class UserController extends Controller
 
         $request->validated();
 
+        // app(User::class) resolves to the project's configured model (see
+        // LaravelCoreServiceProvider::bindResources()), not the hardcoded
+        // core class `new User()` would give — required so Spatie's
+        // syncRoles()/assignRole() persist the morph map's short alias
+        // instead of falling back to the raw core FQCN.
         /** @var User $user */
-        $user = $this->userRepository->update($request, new User());
+        $user = $this->userRepository->update($request, app(User::class));
 
         return redirect()
             ->route('gingerminds-core.users.index')

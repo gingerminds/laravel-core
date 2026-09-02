@@ -25,7 +25,7 @@ class PermissionController extends Controller
 
     public function index(Request $request): Factory|View
     {
-        $this->authorize('viewAny');
+        $this->authorize('viewAny', ResourceResolver::model('permission'));
 
         $permissions = $this->permissionRepository->get($request);
 

@@ -25,7 +25,7 @@ class RoleController extends Controller
 
     public function index(Request $request): View
     {
-        $this->authorize('viewAny');
+        $this->authorize('viewAny', ResourceResolver::model('role'));
 
         $roles = $this->roleRepository->get($request);
 

@@ -13,9 +13,11 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use Gingerminds\LaravelCore\ApiProvider\User\ContributorProvider;
 use Gingerminds\LaravelCore\Database\Factories\User\ContributorFactory;
+use Gingerminds\LaravelCore\Models\EagerLoadableModelInterface;
 use Gingerminds\LaravelCore\Models\ResourceModelInterface;
 use Gingerminds\LaravelCore\Models\SearchableModelInterface;
 use Gingerminds\LaravelCore\Models\SortableModelInterface;
+use Gingerminds\LaravelCore\Models\Trait\EagerLoadableModelTrait;
 use Gingerminds\LaravelCore\StateProcessor\User\ContributorStateProcessor;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -103,15 +105,30 @@ use Symfony\Component\Serializer\Attribute\Groups;
 class Contributor extends Model implements
     ResourceModelInterface,
     SortableModelInterface,
-    SearchableModelInterface
+    SearchableModelInterface,
+    EagerLoadableModelInterface
 {
     /** @use HasFactory<ContributorFactory> */
     use HasFactory;
     use SoftDeletes;
+    use EagerLoadableModelTrait;
 
     public const string GROUP_LIST = 'contributor:list';
     public const string GROUP_READ = 'contributor:read';
     public const string GROUP_EDIT = 'contributor:edit';
+
+    /**
+     * `user` backs both the `user`/`user_id` ApiProperty (GROUP_LIST/GROUP_READ)
+     * and the admin listing/edit views' `$contributor->user` access — without
+     * this, AbstractRepository never eager-loads it and every one of those
+     * reads lazy-loads instead, throwing under Model::preventLazyLoading().
+     *
+     * @return array<int, string>
+     */
+    public static function getEagerLoads(): array
+    {
+        return ['user'];
+    }
 
     /**
      * @return string[]

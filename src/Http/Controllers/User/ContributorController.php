@@ -26,7 +26,7 @@ class ContributorController extends Controller
 
     public function index(Request $request): Factory|View
     {
-        $this->authorize('viewAny');
+        $this->authorize('viewAny', ResourceResolver::model('contributor'));
 
         $contributors = $this->contributorRepository->get($request);
 

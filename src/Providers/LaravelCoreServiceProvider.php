@@ -71,6 +71,9 @@ use Livewire\Livewire;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplPriorityQueue;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 class LaravelCoreServiceProvider extends ServiceProvider
 {
@@ -166,6 +169,23 @@ class LaravelCoreServiceProvider extends ServiceProvider
             static fn (SerializerContextBuilderInterface $inner)
             => new EmbeddedResourceAttributesFixContextBuilder($inner)
         );
+
+        // Works around another api-platform/laravel gap: ApiPlatformProvider
+        // binds its Eloquent-aware PropertyAccessor for every normalizer
+        // except this one — Symfony's stock ObjectNormalizer, which is what
+        // ends up serializing embedded (non-IRI) collections, e.g. a
+        // BelongsTo/HasMany embedded via readableLink. Symfony's own
+        // PropertyAccessor then reads each attribute through its own magic
+        // __get isset() check: Eloquent's isset() reports false whenever a
+        // magic accessor (getXxxAttribute()) returns null, so it throws
+        // NoSuchPropertyException instead of just returning null.
+        $this->app->singleton(ObjectNormalizer::class, function ($app) {
+            return new ObjectNormalizer(
+                $app->make(ClassMetadataFactoryInterface::class),
+                propertyAccessor: $app->make(PropertyAccessorInterface::class),
+                defaultContext: $app['config']->get('api-platform.serializer', []),
+            );
+        });
 
         $providerPath = __DIR__ . '/../ApiProvider';
         $iterator     = new RecursiveIteratorIterator(

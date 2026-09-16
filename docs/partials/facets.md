@@ -107,7 +107,19 @@ interface FilterStoreInterface
 }
 ```
 
-Bind one concrete implementation **per resource**, as its own singleton (e.g. `EventFilterStore implements FilterStoreInterface`, backed by a plain array property) — don't share a single store across resources, or one resource's filters can leak into another's response within the same request lifecycle. The resource's `ApiProvider` calls `set()` with the filters computed by its `AbstractFilterComputeService` subclass while building the collection response.
+`Gingerminds\LaravelCore\Services\Filters\FilterStore` is the default implementation — a plain array-backed holder. Bind one **per resource**, as its own singleton — don't share a single store across resources, or one resource's filters can leak into another's response within the same request lifecycle. Since the container still needs a distinct type per resource to bind separate singletons, a resource only needs an empty subclass:
+
+```php
+namespace App\Services\Filters;
+
+use Gingerminds\LaravelCore\Services\Filters\FilterStore;
+
+class EventFilterStore extends FilterStore
+{
+}
+```
+
+The resource's `ApiProvider` calls `set()` with the filters computed by its `AbstractFilterComputeService` subclass while building the collection response.
 
 ### `AbstractInjectFiltersMiddleware`
 

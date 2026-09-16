@@ -154,3 +154,4 @@ Once registered, `'my-custom-type'` can be used as a `getFilters()` entry's `typ
 - [Resource Model](../ResourceModel.md#optional-interfaces) — where `FilterableModelInterface` fits among the other optional model interfaces.
 - [Layouts](../templating/layouts.md#crudlist) — how the filters panel is rendered on list pages.
 - [Sorting](../Sorting.md) — column sorting, the other list-refinement mechanism.
+- [Facets](facets.md) — computing per-filter option counts/bounds (e.g. "Concerts (12)") behind a faceted-search collection endpoint, built on top of `getFilters()`.

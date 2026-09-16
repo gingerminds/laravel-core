@@ -116,7 +116,7 @@
 
                     <div class="row mt-3">
                         <div class="col-md-12 d-flex justify-content-end pr-6 mr-3">
-                            <p>@lang('gingerminds-core::translation.nb_results', ['current' => $items->count(), 'total' => $items->total()])</p>
+                            <p class="list-results">@lang('gingerminds-core::translation.nb_results', ['current' => $items->count(), 'total' => $items->total()])</p>
                         </div>
                         @if(!isset($isPaginationDisabled) || !$isPaginationDisabled)
                             @include('gingerminds-core::components.list.pagination')

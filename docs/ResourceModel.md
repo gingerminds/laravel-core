@@ -26,7 +26,7 @@ All of these live under `Gingerminds\LaravelCore\Models`.
 |---|---|
 | `SortableModelInterface` | Enables column-header sorting (`?sortBy=&sort=`) on list pages. See [Sorting](Sorting.md). |
 | `SearchableModelInterface` | Enables the free-text search box on list pages. Requires a `getSearchableFields(): array` method. |
-| `FilterableModelInterface` | Enables the filters panel on list pages. Requires a `getFilters(): array` method — see [Filters](partials/filters.md). |
+| `FilterableModelInterface` | Enables the filters panel on list pages. Requires a `getFilters(): array` method — see [Filters](partials/filters.md). Also the basis for [faceted search](partials/facets.md) (per-option result counts) behind a collection endpoint. |
 | `CacheableResourceInterface` | Enables query caching for this resource — use it when the resource is actually served/listed through `AbstractRepository`. Requires `getCacheKey(): string` (`use CacheableResourceTrait` to get a sane default for `getCacheTtl()`). On save/restore the item cache is invalidated then repopulated precisely; on delete it's simply removed; the listing cache is always invalidated (never pre-warmed). See [Cache System](./CacheSystemRedesign.md). |
 | `CacheCascadeInterface` | For models that are *not* independently served (translation rows, child rows) but must still invalidate a parent resource's cache when they change. Requires `getCascadeCacheKeys(): array` — the parent's `getCacheKey()` value(s). Independent of `CacheableResourceInterface`: implement only this one if the model has no cache of its own. |
 | `EagerLoadableModelInterface` | Declares relations (`getEagerLoads(): array`) that `AbstractRepository` always preloads for this resource, whether or not it's also cacheable — fixes N+1 queries at the source instead of relying on callers to pass `$with`. |
@@ -102,4 +102,5 @@ php artisan make:controller-full Namespace/Model [--trad-base=]
 - [Commands](Commands.md) — every generator, including the all-in-one `make:resource`.
 - [Configuration](Configuration.md) — registering the resource (and overriding a built-in one) in `config/gingerminds-core.php`.
 - [API](API.md) — exposing the resource through API Platform.
+- [Filters](partials/filters.md) and [Facets](partials/facets.md) — filtering and faceted search on list/collection pages.
 - [Layouts](templating/layouts.md) and [Forms](templating/forms.md) — building the Blade views.

@@ -210,8 +210,28 @@ $this->app->make(ApiHeaderParameterRegistry::class)->register(
 
 A project can register its own project-specific context (e.g. a `Country`) the exact same way, from its own `AppServiceProvider::boot()`, without needing a package to own it.
 
+### Typing a computed/counted property (`nativeType`)
+
+A property that isn't a real column — e.g. `permissions_count` from `withCount('permissions')`, or any other accessor-backed value — has nothing for API Platform's property-info to introspect, so it's left untyped in the generated OpenAPI schema unless you say otherwise. Declare its type explicitly on the `#[ApiProperty]`:
+
+```php
+use ApiPlatform\Metadata\ApiProperty;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\TypeInfo\Type\BuiltinType;
+use Symfony\Component\TypeInfo\TypeIdentifier;
+
+#[ApiProperty(
+    property: 'permissions_count',
+    serialize: new Groups([Role::GROUP_LIST]),
+    nativeType: new BuiltinType(TypeIdentifier::INT),
+)]
+```
+
+`TypeIdentifier` covers the other scalar cases too (`STRING`, `BOOL`, `FLOAT`, ...) for any other computed property along the same lines.
+
 ## See also
 
 - [Resource Model](ResourceModel.md) — the model/repository/request contract these classes build on.
 - [Configuration](Configuration.md) — registering the resource in `config/gingerminds-core.php` so it can also be resolved dynamically (e.g. by `ResourceResolver`).
 - [Filters](partials/filters.md) — enabling filters consumed by both the admin panel and the API.
+- [Facets](partials/facets.md) — faceted search (per-option result counts) behind a collection endpoint.

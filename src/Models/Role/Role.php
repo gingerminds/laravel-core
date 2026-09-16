@@ -23,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\TypeInfo\Type\BuiltinType;
+use Symfony\Component\TypeInfo\TypeIdentifier;
 
 /**
  * @property bool|null $is_external
@@ -80,9 +82,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
     Role::GROUP_READ,
     Role::GROUP_EDIT,
 ]))]
-#[ApiProperty(property: 'permissions_count', serialize: new Groups([
-    Role::GROUP_LIST,
-]))]
+#[ApiProperty(
+    property: 'permissions_count',
+    serialize: new Groups([
+        Role::GROUP_LIST,
+    ]),
+    nativeType: new BuiltinType(TypeIdentifier::INT),
+)]
 #[ApiProperty(property: 'is_external', serialize: new Groups([
     Role::GROUP_LIST,
     Role::GROUP_READ,

@@ -86,8 +86,59 @@ class EventFilterComputeService extends AbstractFilterComputeService
 - `normalizeIds(mixed $raw): list<int>` — normalizes a raw filter value (`null`, scalar, or array) to a `list<int>`.
 - `resolveCategoryOptions(string $categoryModelClass, Collection<int|string, int> $counts, array $selectedIds, bool $orderBySortOrder = false): list<array{value, label, total}>` — shared "categories"-shaped facet resolution: merges counted category ids (`$counts` keyed by category id, valued by total) with `$selectedIds` via `mergeWithSelected()`, drops zero-count/unselected entries, and labels each option by the category's `name` (falling back to `code`). Plain `protected` method, not part of the required contract — a resource without a category taxonomy has no obligation to call it.
 
+## Exposing computed filters through the API
+
+`AbstractFilterComputeService::computeDateFilters()`/`resolveCategoryOptions()` produce the filter options, but they need to reach the collection response body. `FilterStoreInterface` and `AbstractInjectFiltersMiddleware` are the last leg of that pipeline: a per-request store written from the API provider, read back by a middleware that merges it into the response.
+
+### `FilterStoreInterface`
+
+`Gingerminds\LaravelCore\Services\Filters\FilterStoreInterface` — a per-request store holding a resource's computed `filters`:
+
+```php
+interface FilterStoreInterface
+{
+    /** @param array<string, array{type: string, options: list<array<string, mixed>>}> $filters */
+    public function set(array $filters): void;
+
+    /** @return array<string, array{type: string, options: list<array<string, mixed>>}> */
+    public function get(): array;
+
+    public function isEmpty(): bool;
+}
+```
+
+Bind one concrete implementation **per resource**, as its own singleton (e.g. `EventFilterStore implements FilterStoreInterface`, backed by a plain array property) — don't share a single store across resources, or one resource's filters can leak into another's response within the same request lifecycle. The resource's `ApiProvider` calls `set()` with the filters computed by its `AbstractFilterComputeService` subclass while building the collection response.
+
+### `AbstractInjectFiltersMiddleware`
+
+`Gingerminds\LaravelCore\Http\Middleware\Api\AbstractInjectFiltersMiddleware` — merges the store's filters into the JSON response body, after the response is built:
+
+```php
+use Gingerminds\LaravelCore\Http\Middleware\Api\AbstractInjectFiltersMiddleware;
+use App\Services\Filters\EventFilterStore;
+
+class EventInjectFiltersMiddleware extends AbstractInjectFiltersMiddleware
+{
+    public function __construct(EventFilterStore $filterStore)
+    {
+        parent::__construct($filterStore);
+    }
+}
+```
+
+Register it on the resource's `GetCollection` operation only — filters make sense on a list, not a single-item `Get`:
+
+```php
+new GetCollection(
+    provider: EventProvider::class,
+    middleware: [EventInjectFiltersMiddleware::class],
+),
+```
+
+If the store is empty (`isEmpty()`), the response is returned untouched. Otherwise, entries with no `options` are dropped, then the remaining `filters` are added to the response body — wrapping a plain-array (`json` format) response as `{'member': [...], 'filters': {...}}` first, since a bare list has nowhere else to attach a `filters` key.
+
 ## See also
 
 - [Filters](filters.md) — declaring `getFilters()` on the model, which both this and the filters panel consume.
 - [Resource Model](../ResourceModel.md#optional-interfaces) — `FilterableModelInterface`.
-- [API](../API.md) — exposing facet stats/options through an API provider's collection response.
+- [API](../API.md) — the `GetCollection`/`ApiProvider` wiring `AbstractInjectFiltersMiddleware` and `FilterStoreInterface` plug into.

@@ -49,6 +49,11 @@ return [
     */
     'health_check_path' => env('HEALTH_CHECK_PATH', 'health'),
 
+    'hreflang' => [
+        'locales'   => [],
+        'x_default' => null,
+    ],
+
     'resources' => [
         'user' => [
             'model' => User::class,

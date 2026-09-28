@@ -29,6 +29,44 @@ This value is also what the [authentication guard](Authentication.md) uses to de
 
 Registers a `GET {health_check_path}` route (default `/health`) that always returns a `200` JSON response (`{"status": "ok"}`), outside the admin prefix and without any auth middleware. Since the application root typically redirects into the admin area (and therefore into a login redirect for guests), point CI/monitoring health checks at this route instead of `/`.
 
+## Hreflang (multilingual sites)
+
+```php
+'hreflang' => [
+    'locales'   => [
+        'fr-FR' => 'https://example.fr',
+        'en'    => 'https://example.com/en',
+    ],
+    'x_default' => 'fr-FR',
+],
+```
+
+Both layouts (`master`, `master-without-nav`) render one `<link rel="alternate" hreflang="...">` per entry of `locales` in `<head>`, plus `hreflang="x-default"` when `x_default` names one of the keys. Keys are hreflang codes (`fr`, `fr-FR`...), values the base URL of that language (a domain, a path prefix, or both).
+
+The default resolver (`Gingerminds\LaravelCore\Seo\ConfigAlternateUrlResolver`) finds which base URL the current request belongs to (longest match), then keeps the same path and query string for every language: `https://example.fr/contact?page=2` ⇒ `https://example.com/en/contact?page=2`. With fewer than two entries — the default — or on a URL outside every base URL, nothing is rendered.
+
+Base URLs are compared to `Request::fullUrl()`: behind a reverse proxy, configure trusted proxies so the scheme and host match (`https://`, not `http://`).
+
+**When paths differ between languages** (translated slugs), either:
+
+- set `$alternateUrls` in the page view — it replaces the resolver for that page and is rendered as is (add the `x-default` entry yourself if needed):
+
+  ```blade
+  @php
+      $alternateUrls = [
+          'fr-FR'     => 'https://example.fr/produits/chaise',
+          'en'        => 'https://example.com/en/products/chair',
+          'x-default' => 'https://example.fr/produits/chaise',
+      ];
+  @endphp
+  ```
+
+- or rebind `Gingerminds\LaravelCore\Seo\AlternateUrlResolverInterface` in your service provider (that's the hook for laravel-multisite or a project-specific resolver):
+
+  ```php
+  $this->app->bind(AlternateUrlResolverInterface::class, MyAlternateUrlResolver::class);
+  ```
+
 ## Resource bindings: the `resources` array
 
 ```php

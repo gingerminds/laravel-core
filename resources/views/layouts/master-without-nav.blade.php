@@ -10,6 +10,8 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <!-- App favicon -->
         <link rel="shortcut icon" href="{{ URL::asset('build/images/favicon.ico') }}">
+        @include('gingerminds-core::layouts.partials.hreflang')
+        @stack('head')
 
         @include('gingerminds-core::layouts.head-css')
   </head>

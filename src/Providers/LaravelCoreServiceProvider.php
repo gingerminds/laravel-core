@@ -55,6 +55,9 @@ use Gingerminds\LaravelCore\Repositories\Role\RoleRepository;
 use Gingerminds\LaravelCore\Repositories\User\ContributorRepository;
 use Gingerminds\LaravelCore\Repositories\User\UserRepository;
 use Gingerminds\LaravelCore\Resolver\ResourceResolver;
+use Gingerminds\LaravelCore\Seo\AlternateUrlResolverInterface;
+use Gingerminds\LaravelCore\Seo\ConfigAlternateUrlResolver;
+use Gingerminds\LaravelCore\Seo\HreflangViewComposer;
 use Gingerminds\LaravelCore\Serializer\ContextBuilder\EmbeddedResourceAttributesFixContextBuilder;
 use Gingerminds\LaravelCore\Serializer\JsonCollectionNormalizer;
 use Gingerminds\LaravelCore\StateProcessor\Permission\PermissionStateProcessor;
@@ -66,6 +69,7 @@ use Illuminate\Foundation\Console\ModelMakeCommand as BaseModelMakeCommand;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use RecursiveDirectoryIterator;
@@ -105,6 +109,8 @@ class LaravelCoreServiceProvider extends ServiceProvider
         // SiteContext/LanguageContext directly from core.
         $this->app->bind(CacheContextResolverInterface::class, NullCacheContextResolver::class);
         $this->app->singleton(CacheKeyBuilder::class);
+
+        $this->app->bind(AlternateUrlResolverInterface::class, ConfigAlternateUrlResolver::class);
 
         // Built-in filter types; see FilterHandlerRegistry to add more.
         $this->app->singleton(FilterHandlerRegistry::class, function () {
@@ -234,6 +240,8 @@ class LaravelCoreServiceProvider extends ServiceProvider
             __DIR__ . '/../../resources/views',
             'gingerminds-core'
         );
+
+        View::composer('gingerminds-core::layouts.partials.hreflang', HreflangViewComposer::class);
 
         $this->loadTranslationsFrom(
             __DIR__ . '/../../resources/lang',

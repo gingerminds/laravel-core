@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 
 class ContributorController extends Controller
 {
-    public const string LABEL_S = 'gingerminds-core::translation.contributor.name_s';
+    public const string LABEL_S = 'gingerminds-core::translation.contributors.name_s';
 
     private ContributorRepository $contributorRepository;
 

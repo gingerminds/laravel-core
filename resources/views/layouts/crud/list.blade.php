@@ -136,6 +136,12 @@
 @endsection
 
 
+@if(!isset($isPaginationDisabled) || !$isPaginationDisabled)
+    @push('head')
+        @include('gingerminds-core::components.list.pagination-head-links')
+    @endpush
+@endif
+
 @push('scripts')
     <script src="{{ URL::asset('build/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
     <script src="{{ URL::asset('build/libs/bootstrap-datepicker/locales/bootstrap-datepicker.fr.min.js') }}"></script>

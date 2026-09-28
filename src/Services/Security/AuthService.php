@@ -33,7 +33,7 @@ class AuthService
                 'password' => $credentials['password'],
                 ], $request->boolean('remember'))
             ) {
-                RateLimiter::hit($throttleKey);
+                RateLimiter::hit($throttleKey, 300);
                 throw new Exception('CREDENTIALS_NOT_VALID', 401);
             }
 

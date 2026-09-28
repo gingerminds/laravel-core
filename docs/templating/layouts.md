@@ -25,6 +25,8 @@ Sections/stacks it exposes:
 | Section / stack | Purpose |
 |---|---|
 | `@yield('title')` | `<title>` tag |
+| hreflang tags | `<link rel="alternate" hreflang>` rendered in `<head>` — see [Configuration → Hreflang](../Configuration.md#hreflang-multilingual-sites) (also in `master-without-nav`) |
+| `@stack('head')` | Pushed tags rendered inside `<head>` (e.g. `<link rel="prev/next">`, extra `<meta>`) — also exposed by `master-without-nav` |
 | `@yield('breadcrumb')` | Breadcrumb, typically `<x-gingerminds-core::navigation.breadcrumb>` |
 | `@yield('content')` | Main content |
 | `@stack('modals')` | Pushed modals (e.g. delete confirmation) rendered at the end of `<body>` |
@@ -69,6 +71,14 @@ Minimal usage (see `pages/roles/index.blade.php` for a full example):
 Key variables the layout expects: `$items` (paginator or collection), `$columns` (array of `['name', 'sortable', 'property'?, 'align'?]`), `$sortBy` / `$sortOrder`, and optionally `$indexRoute` / `$filters` to enable the filters panel. Column click-sorting only works if the model implements `SortableModelInterface` — see [Sorting](../Sorting.md).
 
 You can fully replace the table by defining `@section('table')` instead of just `table_list`.
+
+When `$items` is a paginator and `$isPaginationDisabled` is not set, the layout also pushes `<link rel="prev">` / `<link rel="next">` onto the `head` stack (partial `components.list.pagination-head-links`). To add them to a custom paginated page, push the same partial yourself:
+
+```blade
+@push('head')
+    @include('gingerminds-core::components.list.pagination-head-links', ['items' => $items])
+@endpush
+```
 
 ## `crud.list-tree`
 

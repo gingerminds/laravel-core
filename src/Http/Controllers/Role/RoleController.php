@@ -78,8 +78,7 @@ class RoleController extends Controller
         $role = new Role();
         $this->roleRepository->update($request, $role);
 
-        return redirect()
-            ->route('gingerminds-core.roles.index')
+        return $this->redirectAfterStore('gingerminds-core.roles', $role->id)
             ->with(
                 'success',
                 __(
@@ -97,8 +96,7 @@ class RoleController extends Controller
 
         $this->roleRepository->update($request, $role);
 
-        return redirect()
-            ->route('gingerminds-core.roles.edit', $role->id)
+        return $this->redirectAfterUpdate('gingerminds-core.roles', $role->id)
             ->with('success', __('gingerminds-core::translation.successfully_updated', [
                 'model' => __(self::LABEL_S) . ' ' . $role->name,
             ]));

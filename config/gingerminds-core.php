@@ -54,6 +54,12 @@ return [
         'x_default' => null,
     ],
 
+    'redirect_after_save' => [
+        'store'     => 'index',
+        'update'    => 'edit',
+        'resources' => [],
+    ],
+
     'resources' => [
         'user' => [
             'model' => User::class,

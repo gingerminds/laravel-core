@@ -29,6 +29,20 @@ This value is also what the [authentication guard](Authentication.md) uses to de
 
 Registers a `GET {health_check_path}` route (default `/health`) that always returns a `200` JSON response (`{"status": "ok"}`), outside the admin prefix and without any auth middleware. Since the application root typically redirects into the admin area (and therefore into a login redirect for guests), point CI/monitoring health checks at this route instead of `/`.
 
+## Redirect after save
+
+```php
+'redirect_after_save' => [
+    'store'     => 'index', // 'index' | 'edit'
+    'update'    => 'edit',
+    'resources' => [
+        'gingerminds-cms.pages' => ['store' => 'edit'],
+    ],
+],
+```
+
+Where the admin goes after creating (`store`) or updating (`update`) a resource: the listing (`index`) or the form (`edit`). `resources` overrides the global value per route prefix. Controllers return `$this->redirectAfterStore()` / `$this->redirectAfterUpdate()` (from `AbstractController`) with the route prefix, the edit route parameters and, for nested routes, the index route parameters.
+
 ## Hreflang (multilingual sites)
 
 ```php

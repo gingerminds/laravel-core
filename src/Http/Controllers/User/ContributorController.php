@@ -65,8 +65,7 @@ class ContributorController extends Controller
         /** @var Contributor $contributor */
         $contributor = $this->contributorRepository->update($request, new Contributor());
 
-        return redirect()
-            ->route('gingerminds-core.contributors.index')
+        return $this->redirectAfterStore('gingerminds-core.contributors', $contributor->id)
             ->with(
                 'success',
                 __(
@@ -109,8 +108,7 @@ class ContributorController extends Controller
         /** @var Contributor $contributor */
         $contributor = $this->contributorRepository->update($request, $contributor);
 
-        return redirect()
-            ->route('gingerminds-core.contributors.index')
+        return $this->redirectAfterUpdate('gingerminds-core.contributors', $contributor->id)
             ->with(
                 'success',
                 __(

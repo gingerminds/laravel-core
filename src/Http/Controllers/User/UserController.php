@@ -77,8 +77,7 @@ class UserController extends Controller
         /** @var User $user */
         $user = $this->userRepository->update($request, app(User::class));
 
-        return redirect()
-            ->route('gingerminds-core.users.index')
+        return $this->redirectAfterStore('gingerminds-core.users', $user->id)
             ->with('success', __('gingerminds-core::translation.successfully_created', [
                 'model' => __(self::LABEL_S) . ' ' . $user->email,
             ]));
@@ -93,8 +92,7 @@ class UserController extends Controller
         /** @var User $user */
         $user = $this->userRepository->update($request, $user);
 
-        return redirect()
-            ->route('gingerminds-core.users.edit', $user->id)
+        return $this->redirectAfterUpdate('gingerminds-core.users', $user->id)
             ->with('success', __('gingerminds-core::translation.successfully_updated', [
                 'model' => __(self::LABEL_S) . ' ' . $user->email,
             ]));

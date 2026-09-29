@@ -63,8 +63,7 @@ class PermissionController extends Controller
         $permission = new Permission();
         $this->permissionRepository->update($request, $permission);
 
-        return redirect()
-            ->route('gingerminds-core.permissions.index')
+        return $this->redirectAfterStore('gingerminds-core.permissions', $permission->id)
             ->with(
                 'success',
                 __(
@@ -82,8 +81,7 @@ class PermissionController extends Controller
 
         $this->permissionRepository->update($request, $permission);
 
-        return redirect()
-            ->route('gingerminds-core.permissions.edit', $permission->id)
+        return $this->redirectAfterUpdate('gingerminds-core.permissions', $permission->id)
             ->with('success', __(
                 'gingerminds-core::translation.successfully_updated',
                 [

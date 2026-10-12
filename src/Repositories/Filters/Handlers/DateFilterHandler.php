@@ -2,8 +2,8 @@
 
 namespace Gingerminds\LaravelCore\Repositories\Filters\Handlers;
 
-use Carbon\Carbon;
 use Gingerminds\LaravelCore\Repositories\Filters\FilterHandlerInterface;
+use Gingerminds\LaravelCore\Support\DisplayTimezone;
 use Illuminate\Database\Eloquent\Builder;
 
 class DateFilterHandler implements FilterHandlerInterface
@@ -14,16 +14,7 @@ class DateFilterHandler implements FilterHandlerInterface
             return;
         }
 
-        $from = empty($value['from']) ? null : Carbon::createFromFormat('Y-m-d', $value['from']);
-        $to   = empty($value['to']) ? null : Carbon::createFromFormat('Y-m-d', $value['to']);
-
-        if ($from instanceof Carbon) {
-            $from = $from->startOfDay();
-        }
-
-        if ($to instanceof Carbon) {
-            $to = $to->endOfDay();
-        }
+        [$from, $to] = DisplayTimezone::dayRangeToUtc($value['from'] ?? null, $value['to'] ?? null);
 
         $table         = $query->getModel()->getTable();
         $tableProperty = str_contains($property, '.') ? $property : "$table.$property";

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\LaravelCore\Repositories\Filters;
 
-use Carbon\Carbon;
+use Gingerminds\LaravelCore\Support\DisplayTimezone;
 use Illuminate\Database\Eloquent\Builder;
 
 class DateFacetCalculator
@@ -27,15 +27,15 @@ class DateFacetCalculator
                 ->select($column)
                 ->distinct()
                 ->pluck($column)
-                ->map(static fn (mixed $value): int => Carbon::parse((string) $value)->year)
+                ->map(static fn (mixed $value): int => (int) DisplayTimezone::toDisplay((string) $value)?->year)
                 ->unique()
                 ->sortDesc()
                 ->all()
         );
 
         return (object) [
-            'min'   => $bounds?->min !== null ? Carbon::parse($bounds->min)->toDateString() : null,
-            'max'   => $bounds?->max !== null ? Carbon::parse($bounds->max)->toDateString() : null,
+            'min'   => $bounds?->min !== null ? DisplayTimezone::toDisplay($bounds->min)?->toDateString() : null,
+            'max'   => $bounds?->max !== null ? DisplayTimezone::toDisplay($bounds->max)?->toDateString() : null,
             'years' => $years,
         ];
     }

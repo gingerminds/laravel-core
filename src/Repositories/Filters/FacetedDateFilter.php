@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\LaravelCore\Repositories\Filters;
 
-use Carbon\Carbon;
+use Gingerminds\LaravelCore\Support\DisplayTimezone;
 use Illuminate\Database\Eloquent\Builder;
 
 class FacetedDateFilter
@@ -19,8 +19,7 @@ class FacetedDateFilter
             return;
         }
 
-        $from = empty($value['from']) ? null : Carbon::createFromFormat('Y-m-d', $value['from'])?->startOfDay();
-        $to   = empty($value['to']) ? null : Carbon::createFromFormat('Y-m-d', $value['to'])?->endOfDay();
+        [$from, $to] = DisplayTimezone::dayRangeToUtc($value['from'] ?? null, $value['to'] ?? null);
 
         if (! $from && ! $to) {
             return;

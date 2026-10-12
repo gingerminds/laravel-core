@@ -26,7 +26,7 @@ class PermissionRequest extends FormRequest implements FormRequestInterface
     public function rules(): array
     {
         /** @var Permission|null $permission */
-        $permission = $this->route('gingerminds-core.permission');
+        $permission = $this->route('permission');
 
         return [
             'name' => [

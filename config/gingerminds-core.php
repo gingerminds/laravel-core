@@ -49,6 +49,8 @@ return [
     */
     'health_check_path' => env('HEALTH_CHECK_PATH', 'health'),
 
+    'display_timezone' => env('APP_DISPLAY_TIMEZONE'),
+
     'hreflang' => [
         'locales'   => [],
         'x_default' => null,

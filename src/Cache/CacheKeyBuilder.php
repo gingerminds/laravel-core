@@ -47,15 +47,16 @@ class CacheKeyBuilder
     }
 
     /**
-     * Deterministic per-id key: doesn't just get invalidated, it can be
-     * written to directly on save, so a write can repopulate the item cache
-     * instead of only clearing it.
+     * Per-id key, hashed with the request so filters (e.g. a published-only
+     * scope) don't share one entry. Invalidated through itemTag().
      *
      * @param array<string, int|string|null> $context
+     * @param array<mixed> $with
      */
-    public function itemKey(string $resourceTag, array $context, int|string $id): string
+    public function itemKey(string $resourceTag, array $context, int|string $id, Request $request, array $with): string
     {
-        return "{$resourceTag}:item:" . md5(serialize($context)) . ":{$id}";
+        return "{$resourceTag}:item:" . md5(serialize($context)) . ":{$id}:"
+            . md5(serialize($request->all()) . serialize($with));
     }
 
     /**

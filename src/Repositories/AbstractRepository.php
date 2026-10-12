@@ -56,7 +56,7 @@ abstract class AbstractRepository implements RepositoryInterface
         if ($this->resolveCacheType($request) === 'item') {
             $id   = $request->input('filters.id');
             $tags = [$cacheTag, $keyBuilder->itemTag($cacheTag, $id)];
-            $key  = $keyBuilder->itemKey($cacheTag, $context, $id);
+            $key  = $keyBuilder->itemKey($cacheTag, $context, $id, $request, $with);
         } else {
             $tags = [$cacheTag, $keyBuilder->listTag($cacheTag)];
             $key  = $keyBuilder->listKey($cacheTag, $context, $request, $with);

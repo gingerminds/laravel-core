@@ -38,7 +38,6 @@ use Gingerminds\LaravelCore\Http\Requests\User\UserRequest;
 use Gingerminds\LaravelCore\Livewire\Component\List\Filter\SelectModel;
 use Gingerminds\LaravelCore\Models\CacheableResourceInterface;
 use Gingerminds\LaravelCore\Models\CacheCascadeInterface;
-use Gingerminds\LaravelCore\Models\EagerLoadableModelInterface;
 use Gingerminds\LaravelCore\Models\Permission\Permission;
 use Gingerminds\LaravelCore\Models\Role\Role;
 use Gingerminds\LaravelCore\Models\User\Contributor;
@@ -310,84 +309,19 @@ class LaravelCoreServiceProvider extends ServiceProvider
             return Route::get('/livewire/script', $handle);
         });
 
-        Event::listen('eloquent.saved: *', function (string $eventName, array $payload): void {
-            $this->handleCacheableWrite($payload[0] ?? null);
-        });
-        Event::listen('eloquent.restored: *', function (string $eventName, array $payload): void {
-            $this->handleCacheableWrite($payload[0] ?? null);
-        });
-        Event::listen('eloquent.deleted: *', function (string $eventName, array $payload): void {
-            $this->handleCacheableRemoval($payload[0] ?? null);
-        });
-        Event::listen('eloquent.forceDeleted: *', function (string $eventName, array $payload): void {
-            $this->handleCacheableRemoval($payload[0] ?? null);
-        });
-    }
-
-    /**
-     * Covers create and update: the item cache is invalidated then
-     * repopulated precisely (fresh row, eager loads applied) under the
-     * writer's own cache context, while every other cached context for this
-     * same id is simply dropped and left to repopulate lazily on next read
-     * — same "invalidate, don't pre-warm" principle as listings. The
-     * listing cache is always just invalidated: there is no bounded set of
-     * filter/sort/pagination combinations to recompute eagerly.
-     */
-    private function handleCacheableWrite(mixed $model): void
-    {
-        if (! $model instanceof Model) {
-            return;
-        }
-
-        // Same kill switch as AbstractRepository::get() (config('cache.activate'),
-        // env CACHE_ACTIVATE) — if reads never populate the cache, these
-        // Cache::tags() calls would otherwise be dead work at best, or throw
-        // outright if the store is down/misconfigured (e.g. can't tag).
-        if (! config('cache.activate', true)) {
-            return;
-        }
-
-        if ($model instanceof CacheableResourceInterface) {
-            $tag        = $model::getCacheKey();
-            $id         = $model->getKey();
-            $keyBuilder = app(CacheKeyBuilder::class);
-
-            Cache::tags([$keyBuilder->itemTag($tag, $id)])->flush();
-
-            if ($id !== null) {
-                $fresh = $this->reloadForCache($model);
-
-                if ($fresh instanceof Model) {
-                    $ttl      = $model::getCacheTtl() ?? (int) config('cache.resource_ttl_seconds', 3600);
-                    $key      = $keyBuilder->itemKey($tag, $keyBuilder->context(), $id);
-                    $itemTags = Cache::tags([$tag, $keyBuilder->itemTag($tag, $id)]);
-
-                    // Cache::put() treats a string $ttl by casting it to an int
-                    // of seconds — passing the literal 'forever' through would
-                    // cast to 0 and immediately forget() the entry, so 'forever'
-                    // needs its own dedicated call.
-                    if (is_string($ttl)) {
-                        $itemTags->forever($key, $fresh);
-                    } elseif ($ttl > 0) {
-                        $itemTags->put($key, $fresh, now()->addSeconds($ttl));
-                    }
-                }
+        Event::listen(
+            ['eloquent.saved: *', 'eloquent.restored: *', 'eloquent.deleted: *', 'eloquent.forceDeleted: *'],
+            function (string $eventName, array $payload): void {
+                $this->flushCacheable($payload[0] ?? null);
             }
-
-            Cache::tags([$keyBuilder->listTag($tag)])->flush();
-        }
-
-        if ($model instanceof CacheCascadeInterface) {
-            $this->cascadeFlush($model);
-        }
+        );
     }
 
     /**
-     * Covers delete and force delete: the item cache is removed outright
-     * (no re-put, there's nothing left to cache), the listing cache is
-     * invalidated the same way as on write.
+     * Invalidates (never re-puts) the item and listing caches on any write,
+     * so every cached filter/context variant repopulates lazily on next read.
      */
-    private function handleCacheableRemoval(mixed $model): void
+    private function flushCacheable(mixed $model): void
     {
         if (! $model instanceof Model) {
             return;
@@ -408,30 +342,6 @@ class LaravelCoreServiceProvider extends ServiceProvider
         if ($model instanceof CacheCascadeInterface) {
             $this->cascadeFlush($model);
         }
-    }
-
-    /**
-     * Re-reads the model from the database (the in-memory instance may still
-     * carry stale relations from before the save) with its declared eager
-     * loads applied, so the cached item is never missing what its own
-     * resource/serializer will ask for.
-     */
-    private function reloadForCache(Model $model): ?Model
-    {
-        $modelClass = $model::class;
-
-        /** @var Model|null $fresh */
-        $fresh = $modelClass::query()->find($model->getKey());
-
-        if ($fresh === null) {
-            return null;
-        }
-
-        if (is_subclass_of($modelClass, EagerLoadableModelInterface::class)) {
-            $fresh->load($modelClass::getEagerLoads());
-        }
-
-        return $fresh;
     }
 
     /**

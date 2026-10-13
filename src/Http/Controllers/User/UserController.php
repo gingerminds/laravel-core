@@ -24,7 +24,7 @@ class UserController extends Controller
 
     public function __construct()
     {
-        $this->userRepository = new UserRepository();
+        $this->userRepository = app(UserRepository::class);
     }
 
     public function index(Request $request): Factory|View

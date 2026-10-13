@@ -20,7 +20,7 @@ class RoleController extends Controller
 
     public function __construct()
     {
-        $this->roleRepository = new RoleRepository();
+        $this->roleRepository = app(RoleRepository::class);
     }
 
     public function index(Request $request): View

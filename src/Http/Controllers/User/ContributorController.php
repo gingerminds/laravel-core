@@ -21,7 +21,7 @@ class ContributorController extends Controller
 
     public function __construct()
     {
-        $this->contributorRepository = new ContributorRepository();
+        $this->contributorRepository = app(ContributorRepository::class);
     }
 
     public function index(Request $request): Factory|View

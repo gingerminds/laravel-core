@@ -20,7 +20,7 @@ class PermissionController extends Controller
 
     public function __construct()
     {
-        $this->permissionRepository = new PermissionRepository();
+        $this->permissionRepository = app(PermissionRepository::class);
     }
 
     public function index(Request $request): Factory|View

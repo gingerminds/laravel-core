@@ -19,6 +19,10 @@ public static function getFilters(): array
 
 This will automatically add two fields into crud filters `date_property.from` and `date_property.to`.
 
+The filter also accepts an optional `date_property.include_empty` parameter (`1`/`true`/`on`/`yes`) that adds the rows whose date is `NULL` to the range results, e.g. `?date_property[from]=2026-01-01&date_property[include_empty]=1` returns the rows dated from 2026-01-01 on, plus the undated ones. It only applies alongside `from` and/or `to`: on its own it filters nothing. It is an API/query parameter only; the crud filter panel doesn't render a field for it.
+
+The query is built by `FacetedDateFilter::apply()`, shared with the faceted filters (see [Facets](facets.md#faceteddatefilter)).
+
 ## Number filter
 
 ```php

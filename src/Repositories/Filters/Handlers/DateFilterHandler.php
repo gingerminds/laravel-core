@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gingerminds\LaravelCore\Repositories\Filters\Handlers;
 
 use Gingerminds\LaravelCore\Repositories\Filters\FacetedDateFilter;

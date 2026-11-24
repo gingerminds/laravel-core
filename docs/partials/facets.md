@@ -45,7 +45,11 @@ Generic min/max/years computation for a date-shaped facet, given a facet base qu
 
 `Gingerminds\LaravelCore\Repositories\Filters\FacetedDateFilter::apply(Builder $query, string $column, mixed $value): void`
 
-Applies a `{from, to}` date-range where-clause to `$column` from a `date`-typed filter's raw value (`'Y-m-d'` strings). Used internally by `AbstractFacetRepository::applyFacetedDateFilter()`; a non-array `$value`, or one with neither `from` nor `to`, is a no-op.
+Applies a `{from, to}` date-range where-clause to `$column` from a `date`-typed filter's raw value (`'Y-m-d'` strings). Used internally by `AbstractFacetRepository::applyFacetedDateFilter()` and by the `date` [filter handler](filters.md#date-filter) (`DateFilterHandler`), so the crud/API filter and the faceted filter share the same behavior. A non-array `$value`, or one with neither `from` nor `to`, is a no-op.
+
+The value also accepts an optional `include_empty` key (`bool`, or any string `filter_var(..., FILTER_VALIDATE_BOOLEAN)` accepts: `'1'`, `'true'`, `'on'`, `'yes'`). When it is truthy, rows whose `$column` is `NULL` are matched too: the range is wrapped as `WHERE (<range> OR <column> IS NULL)`, so it does not leak through other `OR` constraints. `include_empty` alone, without `from` or `to`, is still a no-op (no range, so no filter at all).
+
+`FacetedDateFilter::includesEmpty(array $value): bool` exposes that flag parsing, for a custom handler that needs the same interpretation.
 
 ## `AbstractFilterComputeService`
 
